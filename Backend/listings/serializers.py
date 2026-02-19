@@ -8,6 +8,7 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
+# -------- SMALL LIST VIEW --------
 class JobSmallSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
 
@@ -23,16 +24,20 @@ class JobSmallSerializer(serializers.ModelSerializer):
             'salary_type',
             'work_mode',
             'created_at',
-            'tags'
+            'tags',
         ]
 
 
+# -------- FULL DETAIL VIEW --------
 class JobDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = JobListing
         fields = '__all__'
+
+
+# (Optional – safe to keep)
 class ListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobListing
