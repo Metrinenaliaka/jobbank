@@ -1,10 +1,19 @@
 from django.db import models
 from django.conf import settings
 from listings.models import JobListing
-from django.utils import timezone
 
 
 class Application(models.Model):
+
+    STATUS_CHOICES = [
+        ("applied", "Applied"),
+        ("reviewed", "Reviewed"),
+        ("assessment", "Assessment"),
+        ("interview", "Interview"),
+        ("accepted", "Accepted"),
+        ("declined", "Declined"),
+    ]
+
     applicant = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -20,6 +29,12 @@ class Application(models.Model):
     cv = models.FileField(upload_to="applications/cv/")
     passport_photo = models.ImageField(upload_to="applications/passports/")
     certificates = models.FileField(upload_to="applications/certificates/")
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="applied"
+    )
 
     applied_at = models.DateTimeField(auto_now_add=True)
 

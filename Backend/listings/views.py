@@ -50,14 +50,16 @@ class JobListingViewSet(viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        """
-        Only show active and non-expired jobs
-        """
+
+        # ⭐ Admin sees EVERYTHING
+        if self.request.user.is_authenticated and self.request.user.is_staff:
+            return JobListing.objects.all()
+
+        # ⭐ Public users see only active jobs
         return JobListing.objects.filter(
             is_active=True,
             expires_at__gt=timezone.now()
         )
-
     def get_serializer_class(self):
         """
         Use small serializer for list

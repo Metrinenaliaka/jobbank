@@ -4,20 +4,25 @@ from .models import SupportTicket
 
 class SupportTicketSerializer(serializers.ModelSerializer):
 
+    user_email = serializers.CharField(
+        source="user.email",
+        read_only=True
+    )
+
     class Meta:
         model = SupportTicket
         fields = [
-            'id',
-            'subject',
-            'message',
-            'admin_response',
-            'status',
-            'created_at',
-            'resolved_at'
+            "id",
+            "subject",
+            "message",
+            "admin_response",
+            "status",
+            "created_at",
+            "resolved_at",
+            "user_email",
         ]
         read_only_fields = [
-            'status',
-            'admin_response',
-            'created_at',
-            'resolved_at'
+            "created_at",
+            "resolved_at",
+            "user_email",
         ]

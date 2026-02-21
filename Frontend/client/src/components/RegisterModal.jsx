@@ -1,7 +1,7 @@
 import { useState, useContext } from "react"
 import { AuthContext } from "../context/AuthContext"
 
-function RegisterModal({ onClose }) {
+function RegisterModal({ onClose, onSwitchToLogin }) {
 
   const { register } = useContext(AuthContext)
 
@@ -24,8 +24,6 @@ function RegisterModal({ onClose }) {
     e.preventDefault()
 
     try {
-
-      // 🔥 Convert year_of_birth to INTEGER
       const payload = {
         ...form,
         year_of_birth: parseInt(form.year_of_birth)
@@ -76,7 +74,6 @@ function RegisterModal({ onClose }) {
             required
           />
 
-          {/* 🔥 NUMBER INPUT */}
           <input
             style={input}
             type="number"
@@ -117,6 +114,20 @@ function RegisterModal({ onClose }) {
           </button>
 
         </form>
+
+        {/* 🔥 NEW LOGIN SECTION */}
+        <div style={loginText}>
+          Already have an account?{" "}
+          <span
+            style={loginLink}
+            onClick={() => {
+              onClose()
+              onSwitchToLogin()
+            }}
+          >
+            Login
+          </span>
+        </div>
 
         <button style={closeBtn} onClick={onClose}>
           Cancel
@@ -172,6 +183,20 @@ const primaryBtn = {
   borderRadius: "6px",
   cursor: "pointer",
   fontWeight: "600"
+}
+
+const loginText = {
+  marginTop: "15px",
+  textAlign: "center",
+  fontSize: "14px",
+  color: "#666"
+}
+
+const loginLink = {
+  color: "#2ecc71",
+  fontWeight: "600",
+  cursor: "pointer",
+  textDecoration: "underline"
 }
 
 const closeBtn = {

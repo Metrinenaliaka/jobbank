@@ -19,9 +19,16 @@ function Navbar({ onLoginClick, onSignupClick }) {
         <div style={menuStyle}>
 
           <Link to="/jobs" style={linkStyle}>Jobs</Link>
-          <Link to="/resources" style={linkStyle}>Resources</Link>
-          <Link to="/tools" style={linkStyle}>Tools</Link>
+          <Link to="/applications" style={linkStyle}>Application History</Link>
 
+          {/* ⭐ ADMIN ONLY */}
+          {user?.is_staff && (
+            <Link to="/admin/jobs" style={adminLinkStyle}>
+              Admin Panel
+            </Link>
+          )}
+
+          {/* Auth Section */}
           {!user ? (
             <>
               <button style={loginBtn} onClick={onLoginClick}>
@@ -33,9 +40,15 @@ function Navbar({ onLoginClick, onSignupClick }) {
               </button>
             </>
           ) : (
-            <button style={signupBtn} onClick={logout}>
-              Sign Out
-            </button>
+            <div style={userSection}>
+              <span style={userName}>
+                👤 {user.full_name}
+              </span>
+
+              <button style={signupBtn} onClick={logout}>
+                Sign Out
+              </button>
+            </div>
           )}
 
         </div>
@@ -44,7 +57,7 @@ function Navbar({ onLoginClick, onSignupClick }) {
   )
 }
 
-/* Styles */
+/* ===== Styles ===== */
 
 const navStyle = {
   background: "#2ecc71",
@@ -68,6 +81,26 @@ const linkStyle = {
   color: "white",
   textDecoration: "none",
   fontWeight: "500"
+}
+
+const adminLinkStyle = {
+  color: "#fff",
+  background: "#27ae60",
+  padding: "6px 12px",
+  borderRadius: "5px",
+  textDecoration: "none",
+  fontWeight: "600"
+}
+
+const userSection = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px"
+}
+
+const userName = {
+  fontWeight: "600",
+  color: "white"
 }
 
 const loginBtn = {

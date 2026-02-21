@@ -10,6 +10,11 @@ function ApplyForm({ jobId }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!cv || !photo || !cert) {
+      setMessage("All files are required.")
+      return
+    }
+
     const formData = new FormData()
     formData.append("job", jobId)
     formData.append("cv", cv)
@@ -20,13 +25,17 @@ function ApplyForm({ jobId }) {
       await API.post("applications/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          // later: Authorization: Token ...
-        }
+        },
       })
-      setMessage("Application submitted successfully")
-    } catch {
-      setMessage("Error submitting application")
-    }
+
+      setMessage("Application submitted successfully ✅")
+
+    }catch (err) {
+  console.log("APPLICATION ERROR:", err.response?.data)
+  setMessage(
+    JSON.stringify(err.response?.data)
+  )
+}
   }
 
   return (

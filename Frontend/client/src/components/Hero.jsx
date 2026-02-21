@@ -1,4 +1,4 @@
-function HeroSection() {
+function HeroSection({ openRegister }) {
   return (
     <section style={heroStyle}>
       <div className="container">
@@ -10,7 +10,9 @@ function HeroSection() {
           Simizi is your all-in-one AI tool for connecting employees with employers in Canada and beyond.
         </p>
 
-        <button style={btnStyle}>Get Started</button>
+        <button style={btnStyle} onClick={openRegister}>
+          Get Started
+        </button>
       </div>
     </section>
   )

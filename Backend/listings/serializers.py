@@ -8,7 +8,6 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
-# -------- SMALL LIST VIEW --------
 class JobSmallSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
 
@@ -28,17 +27,15 @@ class JobSmallSerializer(serializers.ModelSerializer):
         ]
 
 
-# -------- FULL DETAIL VIEW --------
 class JobDetailSerializer(serializers.ModelSerializer):
+
+    # ⭐ FIX CREATED_BY
+    created_by = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
     tags = TagSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = JobListing
-        fields = '__all__'
-
-
-# (Optional – safe to keep)
-class ListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobListing
         fields = '__all__'

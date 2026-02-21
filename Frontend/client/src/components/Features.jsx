@@ -1,54 +1,125 @@
 function FeaturesSection() {
   return (
     <section style={sectionStyle}>
-      <div className="container">
-        <h2 style={heading}>Put Us to work, for you.</h2>
+      <div style={container}>
+        <h2 style={heading}>Put Simizi to work, for you.</h2>
 
-        <p style={{ textAlign: "center", marginBottom: "40px" }}>
-          Your designated assistant for all your job search needs wherever you are.
+        <p style={subText}>
+          Think of it like your personal AI assistant that can help you...
         </p>
 
-        <div style={grid}>
-          <FeatureCard text="Answer questions about Job Placements" />
-          <FeatureCard text="Discover jobs tailored to your skills" />
-          <FeatureCard text="Write resume and cover letters" />
+        <div style={featuresRow}>
+          <FeatureCard
+            icon={<OverlapIcon />}
+            text="Answer questions about Immigration"
+          />
+          <FeatureCard
+            icon={<EyeIcon />}
+            text="Discover jobs tailored to your skills"
+          />
+          <FeatureCard
+            icon={<DocumentIcon />}
+            text="Write resume and cover letters"
+          />
         </div>
       </div>
     </section>
   )
 }
 
-function FeatureCard({ text }) {
+function FeatureCard({ icon, text }) {
   return (
-    <div style={cardStyle}>
-      <p>{text}</p>
+    <div style={featureItem}>
+      <div style={iconWrapper}>
+        {icon}
+      </div>
+      <p style={featureText}>{text}</p>
     </div>
   )
 }
 
+/* ---------- SVG ICONS ---------- */
+
+function OverlapIcon() {
+  return (
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="50" cy="60" r="35" fill="#2ecc71" />
+      <circle cx="75" cy="60" r="35" fill="none" stroke="#2d3748" strokeWidth="6" />
+    </svg>
+  )
+}
+
+function EyeIcon() {
+  return (
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <path
+        d="M20 60 Q60 25 100 60 Q60 95 20 60 Z"
+        fill="#2ecc71"
+      />
+      <circle cx="60" cy="60" r="14" fill="white" />
+      <circle cx="60" cy="60" r="8" fill="#2d3748" />
+    </svg>
+  )
+}
+
+function DocumentIcon() {
+  return (
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="55" cy="60" r="35" fill="#2ecc71" />
+      <circle cx="75" cy="60" r="35" fill="#2d3748" />
+      <rect x="58" y="42" width="30" height="6" fill="white" />
+      <rect x="58" y="55" width="30" height="6" fill="white" />
+      <rect x="58" y="68" width="30" height="6" fill="white" />
+    </svg>
+  )
+}
+
+/* ---------- STYLES ---------- */
+
 const sectionStyle = {
-  padding: "70px 0",
-  background: "white"
+  padding: "100px 0",
+  background: "#f3f4f6"
+}
+
+const container = {
+  maxWidth: "1100px",
+  margin: "0 auto",
+  textAlign: "center",
+  padding: "0 20px"
 }
 
 const heading = {
-  textAlign: "center",
-  color: "#2ecc71",
-  marginBottom: "10px"
+  fontSize: "42px",
+  fontWeight: "500",
+  color: "#2ecc71", // green headline
+  marginBottom: "15px"
 }
 
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-  gap: "20px"
+const subText = {
+  color: "#4a5568",
+  fontSize: "18px",
+  marginBottom: "70px"
 }
 
-const cardStyle = {
-  background: "#f5fff7",
-  padding: "30px",
-  borderRadius: "8px",
-  textAlign: "center",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.05)"
+const featuresRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: "40px",
+  flexWrap: "wrap"
+}
+
+const featureItem = {
+  flex: "1",
+  minWidth: "250px"
+}
+
+const iconWrapper = {
+  marginBottom: "25px"
+}
+
+const featureText = {
+  fontSize: "18px",
+  color: "#2d3748"
 }
 
 export default FeaturesSection

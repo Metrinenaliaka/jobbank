@@ -7,9 +7,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const token = localStorage.getItem("access")
-    if (token) {
-      setUser({ token }) // simple version for now
+    const savedUser = localStorage.getItem("user")
+    if (savedUser) {
+      setUser(JSON.parse(savedUser))
     }
   }, [])
 
@@ -21,8 +21,9 @@ export function AuthProvider({ children }) {
 
     localStorage.setItem("access", res.data.access)
     localStorage.setItem("refresh", res.data.refresh)
+    localStorage.setItem("user", JSON.stringify(res.data.user))
 
-    setUser({ token: res.data.access })
+    setUser(res.data.user)
   }
 
   const register = async (data) => {
@@ -32,6 +33,7 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem("access")
     localStorage.removeItem("refresh")
+    localStorage.removeItem("user")
     setUser(null)
   }
 

@@ -1,4 +1,4 @@
-function CTASection() {
+function CTASection({ openRegister }) {
   return (
     <section style={ctaStyle}>
       <div className="container" style={{ textAlign: "center" }}>
@@ -7,10 +7,12 @@ function CTASection() {
         </h2>
 
         <p style={{ maxWidth: "700px", margin: "20px auto" }}>
-          Our Jod is to find you a job. It's designed to make the process of finding and applying for jobs as easy as possible.
+          Our Job is to find you a job. It's designed to make the process of finding and applying for jobs as easy as possible.
         </p>
 
-        <button style={btnStyle}>Get Started</button>
+        <button style={btnStyle} onClick={openRegister}>
+          Get Started
+        </button>
       </div>
     </section>
   )
