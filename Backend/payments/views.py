@@ -1,9 +1,10 @@
 from rest_framework import viewsets, permissions
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework.permissions import AllowAny, IsAdminUser
 
-from .models import Payment
-from .serializers import PaymentSerializer
+from .models import Payment, PaymentMethod
+from .serializers import PaymentSerializer, PaymentMethodSerializer
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -78,3 +79,20 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 recipient_list=[payment.user.email],
                 fail_silently=False,
             )
+
+class PaymentMethodViewSet(viewsets.ModelViewSet):
+    serializer_class = PaymentMethodSerializer
+
+    def get_permissions(self):
+        # Public users can read (list & retrieve)
+        if self.action in ["list", "retrieve"]:
+            return [AllowAny()]
+        # Only admins can create/update/delete
+        return [IsAdminUser()]
+
+    def get_queryset(self):
+        # Admin sees all methods
+        if self.request.user.is_staff:
+            return PaymentMethod.objects.all()
+        # Public sees only active methods
+        return PaymentMethod.objects.filter(is_active=True)

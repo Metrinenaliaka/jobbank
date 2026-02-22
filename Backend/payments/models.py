@@ -3,17 +3,20 @@ from listings.models import JobListing
 from django.conf import settings
 
 
+class PaymentMethod(models.Model):
+    name = models.CharField(max_length=100)    
+    instructions = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Payment(models.Model):
 
     SERVICE_CHOICES = (
         ("resume", "Resume Writing"),
         ("cover_letter", "Cover Letter Writing"),
-    )
-
-    METHOD_CHOICES = (
-        ("paypal", "PayPal"),
-        ("mpesa", "M-Pesa"),
-        ("bank", "Bank Transfer"),
     )
 
     STATUS_CHOICES = (
@@ -27,6 +30,7 @@ class Payment(models.Model):
         on_delete=models.CASCADE,
         related_name="payments"
     )
+
     job = models.ForeignKey(
         JobListing,
         on_delete=models.SET_NULL,
@@ -36,8 +40,17 @@ class Payment(models.Model):
     )
 
     service_type = models.CharField(max_length=20, choices=SERVICE_CHOICES)
-    payment_method = models.CharField(max_length=20, choices=METHOD_CHOICES)
+
+    # ✅ CHANGED TO FOREIGN KEY
+    payment_method = models.ForeignKey(
+        PaymentMethod,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="payments"
+    )
+
     reference_code = models.CharField(max_length=100)
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,

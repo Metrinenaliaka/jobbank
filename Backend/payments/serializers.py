@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Payment
+from .models import Payment, PaymentMethod
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -7,6 +7,16 @@ class PaymentSerializer(serializers.ModelSerializer):
     user_full_name = serializers.SerializerMethodField()
     user_email = serializers.SerializerMethodField()
     job_title = serializers.SerializerMethodField()
+
+    # ✅ Accept only active methods when creating payment
+    payment_method = serializers.PrimaryKeyRelatedField(
+        queryset=PaymentMethod.objects.filter(is_active=True)
+    )
+
+    payment_method_name = serializers.CharField(
+        source="payment_method.name",
+        read_only=True
+    )
 
     class Meta:
         model = Payment
@@ -19,6 +29,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             "job_title",
             "service_type",
             "payment_method",
+            "payment_method_name",
             "reference_code",
             "status",
             "created_at",
@@ -41,3 +52,9 @@ class PaymentSerializer(serializers.ModelSerializer):
             validated_data.pop("status")
 
         return super().update(instance, validated_data)
+
+
+class PaymentMethodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentMethod
+        fields = ["id", "name", "instructions", "is_active"]

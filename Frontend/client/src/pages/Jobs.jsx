@@ -7,10 +7,11 @@ function Jobs() {
   const [jobs, setJobs] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [selectedService, setSelectedService] = useState("")
-  const [selectedJobId, setSelectedJobId] = useState(null) // ✅ store job id
+  const [selectedJobId, setSelectedJobId] = useState(null)
   const [paymentMethod, setPaymentMethod] = useState("")
   const [referenceCode, setReferenceCode] = useState("")
   const [loading, setLoading] = useState(false)
+  const [paymentMethods, setPaymentMethods] = useState([])
 
   const navigate = useNavigate()
 
@@ -23,7 +24,18 @@ function Jobs() {
         console.error("Error fetching jobs:", err)
       }
     }
+
+    const fetchPaymentMethods = async () => {
+      try {
+        const res = await API.get("payments/methods/")
+        setPaymentMethods(res.data.results || res.data)
+      } catch (err) {
+        console.error("Error fetching payment methods:", err)
+      }
+    }
+
     fetchJobs()
+    fetchPaymentMethods()
   }, [])
 
   const handleApply = (jobId, e) => {
@@ -31,7 +43,6 @@ function Jobs() {
     toast.success(`Apply clicked for job ${jobId}`)
   }
 
-  // ✅ updated to store job id
   const openPaymentModal = (service, jobId, e) => {
     e.stopPropagation()
     setSelectedService(service)
@@ -53,11 +64,10 @@ function Jobs() {
           selectedService === "Resume Writing"
             ? "resume"
             : "cover_letter",
-        payment_method: paymentMethod,
+        payment_method: paymentMethod, // unchanged
         reference_code: referenceCode,
       }
 
-      // only send job if exists
       if (selectedJobId) {
         payload.job = selectedJobId
       }
@@ -134,7 +144,6 @@ function Jobs() {
         ))}
       </div>
 
-      {/* PAYMENT MODAL */}
       {showModal && (
         <div style={modalOverlay}>
           <div style={modalBox}>
@@ -146,29 +155,21 @@ function Jobs() {
               onChange={(e) => setPaymentMethod(e.target.value)}
             >
               <option value="">Select Payment Method</option>
-              <option value="paypal">PayPal</option>
-              <option value="mpesa">M-Pesa</option>
-              <option value="bank">Bank Transfer</option>
+              {paymentMethods.map(method => (
+                <option key={method.id} value={String(method.id)}>
+                  {method.name}
+                </option>
+              ))}
             </select>
 
-            {paymentMethod === "paypal" && (
-              <p style={paymentInfo}>
-                PayPal Email: payments@simizi.com
-              </p>
-            )}
-
-            {paymentMethod === "mpesa" && (
-              <p style={paymentInfo}>
-                M-Pesa Till Number: 123456
-              </p>
-            )}
-
-            {paymentMethod === "bank" && (
-              <p style={paymentInfo}>
-                Bank: ABC Bank <br />
-                Account Number: 1234567890
-              </p>
-            )}
+            {/* FIXED: compare as string */}
+            {paymentMethods
+              .filter(method => String(method.id) === paymentMethod)
+              .map(method => (
+                <p key={method.id} style={paymentInfo}>
+                  {method.instructions}
+                </p>
+              ))}
 
             <input
               style={modalInput}
@@ -263,10 +264,7 @@ const applyBtn = {
 
 const modalOverlay = {
   position: "fixed",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
+  inset: 0,
   background: "rgba(0,0,0,0.5)",
   display: "flex",
   justifyContent: "center",
