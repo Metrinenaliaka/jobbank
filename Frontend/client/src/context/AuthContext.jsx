@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from "react"
+import toast from "react-hot-toast"
 import API from "../api"
 
 export const AuthContext = createContext()
@@ -8,27 +9,53 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user")
-    if (savedUser) {
+    const access = localStorage.getItem("access")
+
+    if (savedUser && access) {
       setUser(JSON.parse(savedUser))
     }
   }, [])
 
-  const login = async (email, password) => {
-    const res = await API.post("users/login/", {
-      email,
-      password
-    })
-
-    localStorage.setItem("access", res.data.access)
-    localStorage.setItem("refresh", res.data.refresh)
-    localStorage.setItem("user", JSON.stringify(res.data.user))
-
-    setUser(res.data.user)
-  }
+  /* =========================
+     REGISTER
+  ========================= */
 
   const register = async (data) => {
-    await API.post("users/register/", data)
+    try {
+      const res = await API.post("users/register/", data)
+      return res
+    } catch (error) {
+      console.error("REGISTER ERROR:", error.response?.data)
+      throw error
+    }
   }
+
+  /* =========================
+     LOGIN
+  ========================= */
+
+  const login = async (email, password) => {
+    try {
+      const res = await API.post("users/login/", {
+        email,
+        password
+      })
+
+      localStorage.setItem("access", res.data.access)
+      localStorage.setItem("refresh", res.data.refresh)
+      localStorage.setItem("user", JSON.stringify(res.data.user))
+
+      setUser(res.data.user)
+
+    } catch (error) {
+      toast.error("Login failed. Please check your credentials.")
+      throw error
+    }
+  }
+
+  /* =========================
+     LOGOUT
+  ========================= */
 
   const logout = () => {
     localStorage.removeItem("access")
@@ -38,7 +65,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, register, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
+import toast from "react-hot-toast" 
 import API from "../api"
-import Navbar from "../components/Navbar"
+
 import ApplyModal from "../components/ApplyModal"
 
 function JobDetail() {

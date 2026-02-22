@@ -28,6 +28,11 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: #222;
+  margin: 0;
+  background: #f8f9fb;
 }
 
 h1 {

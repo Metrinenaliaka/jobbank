@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import toast from "react-hot-toast"
 import API from "../../api"
 
 function AdminSupport() {
@@ -18,6 +19,7 @@ function AdminSupport() {
 
     } catch (err) {
       console.log("Support fetch error:", err)
+      toast.error("Failed to fetch support tickets")
     } finally {
       setLoading(false)
     }
@@ -39,7 +41,7 @@ function AdminSupport() {
 
     } catch (err) {
       console.log(err)
-      alert("Failed updating ticket")
+      toast.error("Failed updating ticket")
     }
   }
 

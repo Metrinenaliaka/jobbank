@@ -9,49 +9,62 @@ class ApplicationViewSet(viewsets.ModelViewSet):
 
     serializer_class = ApplicationSerializer
 
-    # ===== PERMISSIONS =====
+    # =============================
+    # PERMISSIONS
+    # =============================
     def get_permissions(self):
 
-        # Admin required for editing status or deleting
+        # Only admin can edit status or delete
         if self.action in ["update", "partial_update", "destroy"]:
             return [permissions.IsAdminUser()]
 
         return [permissions.IsAuthenticated()]
 
-    # ===== QUERYSET =====
+    # =============================
+    # QUERYSET
+    # =============================
     def get_queryset(self):
 
+        # Admin sees all applications
         if self.request.user.is_staff:
-            return Application.objects.all()
+            return Application.objects.select_related("job", "applicant")
 
-        return Application.objects.filter(
+        # Regular user sees only their own
+        return Application.objects.select_related("job", "applicant").filter(
             applicant=self.request.user
         )
 
-    # ===== CREATE APPLICATION =====
+    # =============================
+    # CREATE APPLICATION
+    # =============================
     def perform_create(self, serializer):
 
         application = serializer.save(
             applicant=self.request.user
         )
 
+        # Send confirmation email
         send_mail(
             subject="Application Submitted Successfully",
             message=(
-                f"You applied for {application.job.title}.\n"
-                f"Current Status: Applied"
+                f"You applied for {application.job.title}.\n\n"
+                f"Status: Applied\n\n"
+                "We will notify you if your status changes."
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[self.request.user.email],
             fail_silently=False,
         )
 
-    # ===== UPDATE STATUS (ADMIN) =====
+    # =============================
+    # UPDATE STATUS (ADMIN ONLY)
+    # =============================
     def perform_update(self, serializer):
+
         old_status = self.get_object().status
         application = serializer.save()
 
-        # send email only if status changed
+        # Send email only if status actually changed
         if old_status != application.status:
 
             send_mail(

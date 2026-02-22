@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from "react"
+import toast from "react-hot-toast"
 import API from "../api"
 import { AuthContext } from "../context/AuthContext"
 
@@ -27,14 +28,14 @@ function SupportChat() {
         message
       })
 
-      alert("Support message sent 👍")
+      toast.success("Support message sent 👍")
       setSubject("")
       setMessage("")
       setOpen(false)
 
     } catch (err) {
       console.log(err)
-      alert("Failed to send support message.")
+      toast.error("Failed to send support message.")
     } finally {
       setLoading(false)
     }

@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import API from "../api"
+import toast from "react-hot-toast"
 
 function Jobs() {
   const [jobs, setJobs] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [selectedService, setSelectedService] = useState("")
+  const [selectedJobId, setSelectedJobId] = useState(null) // ✅ store job id
   const [paymentMethod, setPaymentMethod] = useState("")
   const [referenceCode, setReferenceCode] = useState("")
+  const [loading, setLoading] = useState(false)
+
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -24,25 +28,55 @@ function Jobs() {
 
   const handleApply = (jobId, e) => {
     e.stopPropagation()
-    alert(`Apply clicked for job ${jobId}`)
+    toast.success(`Apply clicked for job ${jobId}`)
   }
 
-  const openPaymentModal = (service, e) => {
+  // ✅ updated to store job id
+  const openPaymentModal = (service, jobId, e) => {
     e.stopPropagation()
     setSelectedService(service)
+    setSelectedJobId(jobId)
     setShowModal(true)
   }
 
-  const handleSubmitPayment = () => {
+  const handleSubmitPayment = async () => {
     if (!paymentMethod || !referenceCode) {
-      alert("Please select payment method and enter reference code.")
+      toast.error("Please select payment method and enter reference code.")
       return
     }
 
-    alert(`Payment submitted for ${selectedService}`)
-    setShowModal(false)
-    setPaymentMethod("")
-    setReferenceCode("")
+    try {
+      setLoading(true)
+
+      const payload = {
+        service_type:
+          selectedService === "Resume Writing"
+            ? "resume"
+            : "cover_letter",
+        payment_method: paymentMethod,
+        reference_code: referenceCode,
+      }
+
+      // only send job if exists
+      if (selectedJobId) {
+        payload.job = selectedJobId
+      }
+
+      await API.post("payments/", payload)
+
+      toast.success("Payment submitted successfully! Check your email.")
+
+      setShowModal(false)
+      setPaymentMethod("")
+      setReferenceCode("")
+      setSelectedJobId(null)
+
+    } catch (err) {
+      console.error("Payment error:", err.response?.data || err.message)
+      toast.error("Payment submission failed. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -73,14 +107,18 @@ function Jobs() {
 
               <button
                 style={secondaryBtn}
-                onClick={(e) => openPaymentModal("Resume Writing", e)}
+                onClick={(e) =>
+                  openPaymentModal("Resume Writing", job.id, e)
+                }
               >
                 Write Resume
               </button>
 
               <button
                 style={secondaryBtn}
-                onClick={(e) => openPaymentModal("Cover Letter Writing", e)}
+                onClick={(e) =>
+                  openPaymentModal("Cover Letter Writing", job.id, e)
+                }
               >
                 Write Cover Letter
               </button>
@@ -140,12 +178,20 @@ function Jobs() {
             />
 
             <div style={modalButtonRow}>
-              <button style={cancelBtn} onClick={() => setShowModal(false)}>
+              <button
+                style={cancelBtn}
+                onClick={() => setShowModal(false)}
+                disabled={loading}
+              >
                 Cancel
               </button>
 
-              <button style={submitBtn} onClick={handleSubmitPayment}>
-                Submit
+              <button
+                style={submitBtn}
+                onClick={handleSubmitPayment}
+                disabled={loading}
+              >
+                {loading ? "Submitting..." : "Submit"}
               </button>
             </div>
           </div>
@@ -169,6 +215,9 @@ const pageStyle = {
 const infoText = {
   marginBottom: "20px",
   fontWeight: "500",
+  fontSize: "25px",
+  fontFamily: "Georgia, serif",
+  color: "#06f385",
 }
 
 const titleStyle = {
@@ -212,7 +261,6 @@ const applyBtn = {
   fontWeight: "bold",
 }
 
-/* MODAL */
 const modalOverlay = {
   position: "fixed",
   top: 0,

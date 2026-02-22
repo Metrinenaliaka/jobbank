@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
+import toast from "react-hot-toast" 
 import API from "../../api"
 
 
@@ -31,6 +32,7 @@ function AdminJobs() {
 
   const [activeTab, setActiveTab] = useState("create")
   const [jobs, setJobs] = useState([])
+  const [payments, setPayments] = useState([])
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
 
@@ -43,6 +45,26 @@ function AdminJobs() {
   useEffect(() => {
     fetchJobs()
   }, [])
+
+  const fetchPayments = async () => {
+  try {
+    const res = await API.get("payments/")
+    setPayments(res.data.results || res.data)
+  } catch (err) {
+    console.log("Payment fetch error:", err.response?.data)
+  } 
+}
+const updatePaymentStatus = async (id, status) => {
+  try {
+    console.log("Sending PATCH request...")
+    await API.patch(`payments/${id}/`, { status })
+    console.log("Status updated successfully")
+    fetchPayments()
+  } catch (err) {
+    console.log("Update error:", err.response?.data || err.message)
+    toast.error("Failed to update payment.")
+  }
+}
 
   // ===== CLEAN NUMBERS =====
   const cleanPayload = (data) => ({
@@ -67,6 +89,7 @@ function AdminJobs() {
     setForm(emptyForm)
     setEditingId(null)
   }
+  
 
   // ===== CREATE / UPDATE =====
   const handleSubmit = async (e) => {
@@ -83,10 +106,10 @@ function AdminJobs() {
 
       if (editingId) {
         await API.patch(`jobs/${editingId}/`, payload)
-        alert("Job updated")
+        toast.success("Job updated")
       } else {
         await API.post("jobs/", payload)
-        alert("Job created")
+        toast.success("Job created")
       }
 
       resetForm()
@@ -95,7 +118,7 @@ function AdminJobs() {
 
     } catch (err) {
       console.log(err.response?.data)
-      alert(JSON.stringify(err.response?.data))
+      toast.error(JSON.stringify(err.response?.data))
     }
   }
 
@@ -156,7 +179,17 @@ function AdminJobs() {
           Support
         </Link>
       </div>
+      <button
+  style={activeTab === "payments" ? activeTabStyle : tabStyle}
+  onClick={() => {
+    setActiveTab("payments")
+    fetchPayments()
+  }}
+>
+  Payments
+</button>
       </div>
+      
 
       {/* ===== FORM ===== */}
       {activeTab === "create" && (
@@ -213,6 +246,53 @@ function AdminJobs() {
 
         </form>
       )}
+      {activeTab === "payments" && (
+  <div style={{ marginTop: "20px" }}>
+
+    {payments.length === 0 && <p>No payments found.</p>}
+
+    {payments.map(payment => (
+      <div key={payment.id} style={card}>
+        <div>
+          <b>{payment.service_type}</b>
+          <p>User: {payment.user_full_name}</p>
+          <p>Email: {payment.user_email}</p>
+          <p>Job: {payment.job_title || "N/A"}</p>
+          <p style={{ margin: "4px 0" }}>
+            Method: {payment.payment_method}
+          </p>
+          <p style={{ margin: "4px 0" }}>
+            Reference: {payment.reference_code}
+          </p>
+          <p style={{ margin: "4px 0" }}>
+            Status: <strong>{payment.status}</strong>
+          </p>
+          <p style={{ fontSize: "12px", color: "#777" }}>
+            {new Date(payment.created_at).toLocaleString()}
+          </p>
+        </div>
+
+        {payment.status === "pending" && (
+          <div>
+            <button
+              onClick={() => updatePaymentStatus(payment.id, "verified")}
+              style={{ marginRight: "8px" }}
+            >
+              Verify
+            </button>
+
+            <button
+              onClick={() => updatePaymentStatus(payment.id, "rejected")}
+            >
+              Reject
+            </button>
+          </div>
+        )}
+      </div>
+    ))}
+
+  </div>
+)}
 
       {/* ===== MANAGE ===== */}
       {activeTab === "manage" && (

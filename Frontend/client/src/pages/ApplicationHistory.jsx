@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import toast from "react-hot-toast"
 import API from "../api"
 
 const STEPS = [
@@ -20,6 +21,7 @@ function ApplicationHistory() {
         setApplications(res.data.results || res.data)
       } catch (err) {
         console.log(err)
+        toast.error("Failed to fetch applications")
       }
     }
 

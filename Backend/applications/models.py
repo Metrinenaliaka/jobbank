@@ -26,9 +26,17 @@ class Application(models.Model):
         related_name="applications"
     )
 
+    # Required Documents
     cv = models.FileField(upload_to="applications/cv/")
+    cover_letter = models.FileField(upload_to="applications/cover_letters/")
     passport_photo = models.ImageField(upload_to="applications/passports/")
-    certificates = models.FileField(upload_to="applications/certificates/")
+
+    # Optional
+    other_documents = models.FileField(
+        upload_to="applications/others/",
+        blank=True,
+        null=True
+    )
 
     status = models.CharField(
         max_length=20,

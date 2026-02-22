@@ -1,4 +1,5 @@
 import { useState, useContext } from "react"
+import toast from "react-hot-toast"
 import { AuthContext } from "../context/AuthContext"
 
 function RegisterModal({ onClose, onSwitchToLogin }) {
@@ -31,12 +32,12 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
 
       await register(payload)
 
-      alert("Registered! Check email to verify.")
+      toast.success("Registered! Check email to verify.")
       onClose()
 
     } catch (err) {
       console.log(err.response?.data)
-      alert(JSON.stringify(err.response?.data))
+      toast.error(JSON.stringify(err.response?.data))
     }
   }
 

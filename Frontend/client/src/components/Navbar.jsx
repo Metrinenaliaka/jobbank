@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { useContext } from "react"
+import toast from "react-hot-toast"
 import { AuthContext } from "../context/AuthContext"
 
 function Navbar({ onLoginClick, onSignupClick }) {
@@ -12,16 +13,23 @@ function Navbar({ onLoginClick, onSignupClick }) {
         
         {/* Logo */}
         <Link to="/" style={{ textDecoration: "none", color: "white" }}>
-          <h2 style={{ margin: 0 }}>JobBank</h2>
+          <h2 style={{ margin: 0 }}>Simizi</h2>
         </Link>
 
         {/* Menu */}
         <div style={menuStyle}>
 
+          {/* Always visible */}
           <Link to="/jobs" style={linkStyle}>Jobs</Link>
-          <Link to="/applications" style={linkStyle}>Application History</Link>
 
-          {/* ⭐ ADMIN ONLY */}
+          {/* NORMAL USERS ONLY */}
+          {user && !user.is_staff && (
+            <Link to="/applications" style={linkStyle}>
+              Application History
+            </Link>
+          )}
+
+          {/* ADMIN ONLY */}
           {user?.is_staff && (
             <Link to="/admin/jobs" style={adminLinkStyle}>
               Admin Panel

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import toast from "react-hot-toast"
 import API from "../../api"
 
 const STATUSES = [
@@ -29,7 +30,7 @@ function AdminApplications() {
       fetchApplications()
     } catch (err) {
       console.log(err.response?.data)
-      alert("Failed to update status")
+      toast.error("Failed to update status")
     }
   }
 
@@ -60,10 +61,33 @@ function AdminApplications() {
 
                 <small>{app.company_name}</small>
 
-                <div style={{ marginTop: "8px" }}>
-                  <a href={app.cv} target="_blank">CV</a>{" | "}
-                  <a href={app.certificates} target="_blank">Certificates</a>
-                </div>
+                <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
+  
+  {app.cv && (
+    <a href={app.cv} target="_blank" rel="noreferrer">
+      📄 View CV
+    </a>
+  )}
+
+  {app.cover_letter && (
+    <a href={app.cover_letter} target="_blank" rel="noreferrer">
+      📝 View Cover Letter
+    </a>
+  )}
+
+  {app.passport_photo && (
+    <a href={app.passport_photo} target="_blank" rel="noreferrer">
+      🖼 View Passport Photo
+    </a>
+  )}
+
+  {app.other_documents && (
+    <a href={app.other_documents} target="_blank" rel="noreferrer">
+      📎 View Other Documents
+    </a>
+  )}
+
+</div>
 
                 <select
                   value={app.status}

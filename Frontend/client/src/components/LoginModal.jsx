@@ -1,5 +1,6 @@
 import { useState, useContext } from "react"
 import { AuthContext } from "../context/AuthContext"
+import toast from "react-hot-toast"
 
 function LoginModal({ onClose }) {
 
@@ -13,10 +14,10 @@ function LoginModal({ onClose }) {
 
     try {
       await login(email, password)
-      alert("Login successful")
+      toast.success("Login successful")
       onClose()
-    } catch {
-      alert("Invalid credentials or email not verified")
+    } catch (err) {
+      toast.error("Invalid credentials or email not verified")
     }
   }
 

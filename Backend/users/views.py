@@ -1,5 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+from django.shortcuts import redirect
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from django.conf import settings
@@ -42,7 +43,7 @@ class VerifyEmailView(generics.GenericAPIView):
 
         if verification.is_expired():
             verification.delete()
-            raise ValidationError("Verification link has expired.")
+            return redirect("http://127.0.0.1:5173/?verified=expired")
 
         user = verification.user
         user.is_active = True
@@ -50,10 +51,8 @@ class VerifyEmailView(generics.GenericAPIView):
 
         verification.delete()
 
-        return Response(
-            {"message": "Email verified successfully"},
-            status=status.HTTP_200_OK
-        )
+        # 🔥 Redirect to frontend homepage
+        return redirect("http://127.0.0.1:5173/?verified=true")
 
 class ResendVerificationView(generics.GenericAPIView):
     serializer_class = ResendVerificationSerializer

@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { useState } from "react"
+import { Toaster } from "react-hot-toast"
+
+
 
 import Home from "./pages/Home"
 import Jobs from "./pages/Jobs"
@@ -19,6 +22,7 @@ function App() {
 
   const [showLogin, setShowLogin] = useState(false)
   const [showSignup, setShowSignup] = useState(false)
+  
 
   return (
     <BrowserRouter>
@@ -64,6 +68,7 @@ function App() {
       </Routes>
 
       <SupportChat />
+      <Toaster position="top-right" />
 
       {/* ✅ POPUPS WITH SWITCH LOGIC */}
       {showLogin && (
