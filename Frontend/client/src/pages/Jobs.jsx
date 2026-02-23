@@ -147,7 +147,8 @@ function Jobs() {
       {showModal && (
         <div style={modalOverlay}>
           <div style={modalBox}>
-            <h3>{selectedService} Payment</h3>
+            <h2>{selectedService} Payment</h2>
+            <h3>Make a Payment Equivalent to 100 CAD </h3>
 
             <select
               style={modalInput}
