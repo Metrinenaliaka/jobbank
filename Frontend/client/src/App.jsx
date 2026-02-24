@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Toaster } from "react-hot-toast"
 
 
-
+import ResetPassword from "./pages/ResetPassword"
 import Home from "./pages/Home"
 import Jobs from "./pages/Jobs"
 import JobDetail from "./pages/JobDetail"
@@ -39,6 +39,7 @@ function App() {
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/applications" element={<ApplicationHistory />} />
         <Route path="/resources" element={<Resources />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route
           path="/admin/jobs"
           element={

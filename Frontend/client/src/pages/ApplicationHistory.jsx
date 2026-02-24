@@ -20,7 +20,7 @@ function ApplicationHistory() {
         const res = await API.get("applications/")
         setApplications(res.data.results || res.data)
       } catch (err) {
-        console.log(err)
+        
         toast.error("Failed to fetch applications")
       }
     }

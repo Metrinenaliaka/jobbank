@@ -1,19 +1,22 @@
 import { useState, useContext } from "react"
 import { AuthContext } from "../context/AuthContext"
 import toast from "react-hot-toast"
+import API from "../api"
 
 function LoginModal({ onClose }) {
-
   const { login } = useContext(AuthContext)
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showForgot, setShowForgot] = useState(false)
+  const [resetEmail, setResetEmail] = useState("")
 
   const handleLogin = async (e) => {
     e.preventDefault()
-
+    
     try {
       await login(email, password)
+      
       toast.success("Login successful")
       onClose()
     } catch (err) {
@@ -21,33 +24,89 @@ function LoginModal({ onClose }) {
     }
   }
 
+  const handlePasswordReset = async (e) => {
+    e.preventDefault()
+
+    try {
+      // 🔥 CHANGE THIS ENDPOINT TO MATCH YOUR BACKEND
+      await API.post("users/password-reset/", {
+        email: resetEmail
+      })
+
+      toast.success("Password reset link sent to your email.")
+      setShowForgot(false)
+    } catch (err) {
+      toast.error("Error sending reset email.")
+    }
+  }
+
   return (
     <div style={overlay}>
       <div style={modal}>
 
-        <h2 style={title}>Welcome Back 👋</h2>
-        <p style={subtitle}>Login to continue</p>
+        {!showForgot ? (
+          <>
+            <h2 style={title}>Welcome Back 👋</h2>
+            <p style={subtitle}>Login to continue</p>
 
-        <form onSubmit={handleLogin} style={formStyle}>
-          <input
-            style={input}
-            placeholder="Email"
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
+            <form onSubmit={handleLogin} style={formStyle}>
+              <input
+                style={input}
+                placeholder="Email"
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
 
-          <input
-            style={input}
-            type="password"
-            placeholder="Password"
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
+              <input
+                style={input}
+                type="password"
+                placeholder="Password"
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
 
-          <button style={primaryBtn} type="submit">
-            Log In
-          </button>
-        </form>
+              <div style={forgotContainer}>
+                <span
+                  style={forgotLink}
+                  onClick={() => setShowForgot(true)}
+                >
+                  Forgot Password?
+                </span>
+              </div>
+
+              <button style={primaryBtn} type="submit">
+                Log In
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <h2 style={title}>Reset Password</h2>
+            <p style={subtitle}>Enter your email to receive reset link</p>
+
+            <form onSubmit={handlePasswordReset} style={formStyle}>
+              <input
+                style={input}
+                placeholder="Email"
+                onChange={e => setResetEmail(e.target.value)}
+                required
+              />
+
+              <button style={primaryBtn} type="submit">
+                Send Reset Link
+              </button>
+            </form>
+
+            <div style={forgotContainer}>
+              <span
+                style={forgotLink}
+                onClick={() => setShowForgot(false)}
+              >
+                Back to Login
+              </span>
+            </div>
+          </>
+        )}
 
         <button style={closeBtn} onClick={onClose}>
           Cancel
@@ -107,6 +166,17 @@ const primaryBtn = {
   border: "none",
   padding: "12px",
   borderRadius: "6px",
+  cursor: "pointer",
+  fontWeight: "600"
+}
+
+const forgotContainer = {
+  textAlign: "right",
+  fontSize: "13px"
+}
+
+const forgotLink = {
+  color: "#2ecc71",
   cursor: "pointer",
   fontWeight: "600"
 }

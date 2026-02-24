@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
       const res = await API.post("users/register/", data)
       return res
     } catch (error) {
-      console.error("REGISTER ERROR:", error.response?.data)
+      toast.error("Registration failed. Please check your details.")
       throw error
     }
   }
@@ -40,6 +40,7 @@ export function AuthProvider({ children }) {
         email,
         password
       })
+      
 
       localStorage.setItem("access", res.data.access)
       localStorage.setItem("refresh", res.data.refresh)

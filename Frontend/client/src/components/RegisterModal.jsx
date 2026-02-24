@@ -1,10 +1,31 @@
 import { useState, useContext } from "react"
 import toast from "react-hot-toast"
+import PhoneInput from "react-phone-input-2"
+import "react-phone-input-2/lib/style.css"
 import { AuthContext } from "../context/AuthContext"
 
 function RegisterModal({ onClose, onSwitchToLogin }) {
-
   const { register } = useContext(AuthContext)
+
+  const languagesList = [
+    "English",
+    "French",
+    "Spanish",
+    "German",
+    "Arabic",
+    "Mandarin",
+    "Portuguese",
+    "Hindi",
+    "Swahili",
+    "Italian"
+  ]
+
+  const countries = [
+    "Canada","United States","United Kingdom","France","Germany",
+    "Kenya","Nigeria","India","Australia","South Africa",
+    "China","Brazil","Italy","Spain","Mexico",
+    "Japan","Netherlands","Sweden","Norway","Denmark"
+  ]
 
   const [form, setForm] = useState({
     full_name: "",
@@ -27,8 +48,15 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
     try {
       const payload = {
         ...form,
-        year_of_birth: parseInt(form.year_of_birth)
+        phone_number: form.phone_number.startsWith("+")
+          ? form.phone_number
+          : `+${form.phone_number}`,
+        year_of_birth: form.year_of_birth
+          ? parseInt(form.year_of_birth)
+          : null
       }
+
+    
 
       await register(payload)
 
@@ -36,7 +64,7 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
       onClose()
 
     } catch (err) {
-      console.log(err.response?.data)
+     
       toast.error(JSON.stringify(err.response?.data))
     }
   }
@@ -83,28 +111,57 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
             onChange={handleChange}
           />
 
-          <input
+          {/* Languages */}
+          <select
             style={input}
             name="languages"
-            placeholder="Languages"
             onChange={handleChange}
+            required
+          >
+            <option value="">Select Language</option>
+            {languagesList.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang}
+              </option>
+            ))}
+          </select>
+
+          {/* Phone Input (E.164 compatible) */}
+          <PhoneInput
+            country={"ca"}
+            value={form.phone_number}
+            onChange={(phone) =>
+              setForm({ ...form, phone_number: phone })
+            }
+            inputStyle={{
+              width: "100%",
+              borderRadius: "6px",
+              border: "1px solid #ddd",
+              height: "42px"
+            }}
+            containerStyle={{ width: "100%" }}
           />
 
-          <input
-            style={input}
-            name="phone_number"
-            placeholder="+254712345678"
-            onChange={handleChange}
-          />
-
-          <input
+          {/* Nationality */}
+          <select
             style={input}
             name="nationality"
-            placeholder="Nationality"
             onChange={handleChange}
-          />
+            required
+          >
+            <option value="">Select Nationality</option>
+            {countries.map((country) => (
+              <option key={country} value={country}>
+                {country}
+              </option>
+            ))}
+          </select>
 
-          <select style={input} name="gender" onChange={handleChange}>
+          <select
+            style={input}
+            name="gender"
+            onChange={handleChange}
+          >
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
@@ -116,7 +173,6 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
 
         </form>
 
-        {/* 🔥 NEW LOGIN SECTION */}
         <div style={loginText}>
           Already have an account?{" "}
           <span
@@ -153,7 +209,7 @@ const overlay = {
 
 const modal = {
   background: "white",
-  width: "380px",
+  width: "400px",
   maxHeight: "90vh",
   overflowY: "auto",
   padding: "30px",
@@ -167,13 +223,14 @@ const subtitle = { color: "#666", marginBottom: "20px" }
 const formStyle = {
   display: "flex",
   flexDirection: "column",
-  gap: "10px"
+  gap: "12px"
 }
 
 const input = {
   padding: "10px",
   border: "1px solid #ddd",
-  borderRadius: "6px"
+  borderRadius: "6px",
+  height: "42px"
 }
 
 const primaryBtn = {

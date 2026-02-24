@@ -4,11 +4,12 @@ from django.shortcuts import redirect
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import User, EmailVerification
+from .models import User, EmailVerification, PasswordReset
 from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ResendVerificationSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth.hashers import make_password
 
 
 class CustomLoginView(TokenObtainPairView):
@@ -94,5 +95,69 @@ class ResendVerificationView(generics.GenericAPIView):
 
         return Response(
             {"message": "Verification email sent."},
+            status=status.HTTP_200_OK
+        )
+
+class RequestPasswordResetView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+        print("Incoming reset email:", email)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Don't reveal if email exists
+            return Response(
+                {"message": "If the email exists, a reset link has been sent."},
+                status=status.HTTP_200_OK
+            )
+
+        PasswordReset.objects.filter(user=user).delete()
+
+        reset = PasswordReset.objects.create(user=user)
+
+        reset_link = f"http://127.0.0.1:5173/reset-password/{reset.token}/"
+
+        print("Reset email being sent to:", user.email)
+
+        send_mail(
+            subject="Reset Your Password",
+            message=f"Click to reset your password: {reset_link}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+        )
+
+        return Response(
+            {"message": "Reset link sent."},
+            status=status.HTTP_200_OK
+        )
+class ConfirmPasswordResetView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, token):
+        reset = get_object_or_404(PasswordReset, token=token)
+
+        if reset.is_expired():
+            reset.delete()
+            return Response(
+                {"error": "Reset link expired."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        new_password = request.data.get("password")
+
+        if not new_password:
+            raise ValidationError({"password": "Password required."})
+
+        user = reset.user
+        user.set_password(new_password)   # ✅ CORRECT METHOD
+        user.save()
+
+        reset.delete()
+
+        return Response(
+            {"message": "Password reset successful."},
             status=status.HTTP_200_OK
         )

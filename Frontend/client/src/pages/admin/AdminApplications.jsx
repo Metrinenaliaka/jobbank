@@ -29,7 +29,7 @@ function AdminApplications() {
       await API.patch(`applications/${id}/`, { status })
       fetchApplications()
     } catch (err) {
-      console.log(err.response?.data)
+     
       toast.error("Failed to update status")
     }
   }

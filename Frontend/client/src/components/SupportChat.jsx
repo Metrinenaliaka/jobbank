@@ -34,7 +34,7 @@ function SupportChat() {
       setOpen(false)
 
     } catch (err) {
-      console.log(err)
+     
       toast.error("Failed to send support message.")
     } finally {
       setLoading(false)

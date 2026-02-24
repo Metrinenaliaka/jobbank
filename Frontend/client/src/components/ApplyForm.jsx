@@ -5,7 +5,7 @@ import toast from "react-hot-toast"
 function ApplyForm({ jobId }) {
   const [cv, setCv] = useState(null)
   const [coverLetter, setCoverLetter] = useState(null)
-  const [photo, setPhoto] = useState(null)
+ 
   const [otherDocs, setOtherDocs] = useState(null)
   const [message, setMessage] = useState("")
 
@@ -59,7 +59,7 @@ function ApplyForm({ jobId }) {
       toast.success("Application submitted successfully!")
 
     } catch (err) {
-      console.log("APPLICATION ERROR:", err.response?.data)
+      
       setMessage(JSON.stringify(err.response?.data))
       toast.error("Failed to submit application.")
     }

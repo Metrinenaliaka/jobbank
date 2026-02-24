@@ -18,7 +18,7 @@ function AdminSupport() {
       setTickets(data)
 
     } catch (err) {
-      console.log("Support fetch error:", err)
+     
       toast.error("Failed to fetch support tickets")
     } finally {
       setLoading(false)
@@ -40,7 +40,7 @@ function AdminSupport() {
       fetchTickets()
 
     } catch (err) {
-      console.log(err)
+      
       toast.error("Failed updating ticket")
     }
   }

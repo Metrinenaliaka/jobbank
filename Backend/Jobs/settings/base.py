@@ -119,7 +119,8 @@ REST_FRAMEWORK = {
         'user': '1000/day',
     },
 }
-
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
 # -----------------------
 # JWT
@@ -134,13 +135,17 @@ SIMPLE_JWT = {
 # -----------------------
 # Email
 # -----------------------
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = "mail.privateemail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+DEFAULT_FROM_EMAIL = "Simizi <info@simizi.net>"
 
 
 # -----------------------

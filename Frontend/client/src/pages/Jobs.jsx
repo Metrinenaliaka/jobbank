@@ -21,7 +21,7 @@ function Jobs() {
         const res = await API.get("jobs/")
         setJobs(res.data.results || res.data)
       } catch (err) {
-        console.error("Error fetching jobs:", err)
+        toast.error("Failed to fetch jobs.")
       }
     }
 
@@ -30,7 +30,7 @@ function Jobs() {
         const res = await API.get("payments/methods/")
         setPaymentMethods(res.data.results || res.data)
       } catch (err) {
-        console.error("Error fetching payment methods:", err)
+        toast.error("Failed to fetch payment methods.")
       }
     }
 
@@ -82,7 +82,7 @@ function Jobs() {
       setSelectedJobId(null)
 
     } catch (err) {
-      console.error("Payment error:", err.response?.data || err.message)
+      
       toast.error("Payment submission failed. Please try again.")
     } finally {
       setLoading(false)

@@ -41,7 +41,7 @@ function ApplyModal({ jobId, onClose }) {
       onClose()
 
     } catch (err) {
-      console.log("APPLICATION ERROR:", err.response?.data)
+     
       toast.error(
         JSON.stringify(err.response?.data) ||
         "Failed to submit application"
@@ -58,7 +58,7 @@ function ApplyModal({ jobId, onClose }) {
         <div style={header}>
           <h2 style={{ margin: 0 }}>Apply for Job</h2>
           <p style={subtitle}>
-            Upload the required documents below
+            Upload the required documents below, large files will not be accepted.
           </p>
         </div>
 

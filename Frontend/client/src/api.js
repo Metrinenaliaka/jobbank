@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/",
+  baseURL: import.meta.env.VITE_API_URL,
 })
 
 // Attach access token
@@ -33,9 +33,9 @@ API.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "http://127.0.0.1:8000/api/users/token/refresh/",
-          { refresh }
-        )
+        `${import.meta.env.VITE_API_URL}users/token/refresh/`,
+        { refresh }
+      )
 
         localStorage.setItem("access", res.data.access)
 

@@ -39,6 +39,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     def age(self):
         return date.today().year - self.year_of_birth
 
+class PasswordReset(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(hours=1)
+
+    def __str__(self):
+        return f"Password reset for {self.user.email}"
+
 class EmailVerification(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     token = models.UUIDField(default=uuid.uuid4, editable=False)

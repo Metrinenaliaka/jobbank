@@ -60,7 +60,7 @@ function AdminJobs() {
     const res = await API.get("payments/")
     setPayments(res.data.results || res.data)
   } catch (err) {
-    console.log("Payment fetch error:", err.response?.data)
+    toast.error("Failed to fetch payments.")
   } 
 }
 const fetchMethods = async () => {
@@ -68,17 +68,18 @@ const fetchMethods = async () => {
     const res = await API.get("payments/methods/")
     setMethods(res.data.results || res.data)
   } catch (err) {
-    console.log("Method fetch error:", err.response?.data)
+    toast.error("Failed to fetch payment methods.")
   }
 }
 const updatePaymentStatus = async (id, status) => {
   try {
-    console.log("Sending PATCH request...")
+   
     await API.patch(`payments/${id}/`, { status })
-    console.log("Status updated successfully")
+    
+    toast.success(`Payment ${status}` )
     fetchPayments()
   } catch (err) {
-    console.log("Update error:", err.response?.data || err.message)
+    
     toast.error("Failed to update payment.")
   }
 }
@@ -124,7 +125,7 @@ const updatePaymentStatus = async (id, status) => {
     fetchMethods()
 
   } catch (err) {
-    console.log(err.response?.data)
+   
     toast.error("Failed to save method")
   }
 }
@@ -172,7 +173,7 @@ const handleDeleteMethod = async (id) => {
       setActiveTab("manage")
 
     } catch (err) {
-      console.log(err.response?.data)
+      
       toast.error(JSON.stringify(err.response?.data))
     }
   }
