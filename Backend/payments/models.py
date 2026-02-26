@@ -1,5 +1,6 @@
 from django.db import models
 from listings.models import JobListing
+from applications.models import Application
 from django.conf import settings
 
 
@@ -17,6 +18,7 @@ class Payment(models.Model):
     SERVICE_CHOICES = (
         ("resume", "Resume Writing"),
         ("cover_letter", "Cover Letter Writing"),
+        ("application_fee", "Application Processing Fee"),
     )
 
     STATUS_CHOICES = (
@@ -37,6 +39,13 @@ class Payment(models.Model):
         null=True,
         blank=True,
         related_name="payments"
+    )
+    application = models.ForeignKey(
+        Application,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name="payments"
     )
 
     service_type = models.CharField(max_length=20, choices=SERVICE_CHOICES)

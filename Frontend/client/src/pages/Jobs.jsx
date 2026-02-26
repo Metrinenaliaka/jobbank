@@ -38,10 +38,10 @@ function Jobs() {
     fetchPaymentMethods()
   }, [])
 
-  const handleApply = (jobId, e) => {
-    e.stopPropagation()
-    toast.success(`Apply clicked for job ${jobId}`)
-  }
+ const handleApply = (jobId, e) => {
+  e.stopPropagation()
+  navigate(`/jobs/${jobId}`)
+}
 
   const openPaymentModal = (service, jobId, e) => {
     e.stopPropagation()

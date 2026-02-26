@@ -14,6 +14,12 @@ class Application(models.Model):
         ("declined", "Declined"),
     ]
 
+    PAYMENT_STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("rejected", "Rejected"),
+    ]
+
     applicant = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -42,6 +48,20 @@ class Application(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default="applied"
+    )
+    payment_status = models.CharField(
+    max_length=20,
+    choices=PAYMENT_STATUS_CHOICES,
+    default="pending"
+    )
+    payment_verified_at = models.DateTimeField(
+        blank=True,
+        null=True
+    )
+
+    payment_rejection_reason = models.TextField(
+        blank=True,
+        null=True
     )
 
     applied_at = models.DateTimeField(auto_now_add=True)

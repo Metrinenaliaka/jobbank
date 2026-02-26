@@ -2,13 +2,16 @@ from rest_framework import serializers
 from .models import Payment, PaymentMethod
 
 
+from rest_framework import serializers
+from .models import Payment, PaymentMethod
+
+
 class PaymentSerializer(serializers.ModelSerializer):
 
     user_full_name = serializers.SerializerMethodField()
     user_email = serializers.SerializerMethodField()
     job_title = serializers.SerializerMethodField()
 
-    # ✅ Accept only active methods when creating payment
     payment_method = serializers.PrimaryKeyRelatedField(
         queryset=PaymentMethod.objects.filter(is_active=True)
     )
@@ -26,6 +29,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             "user_full_name",
             "user_email",
             "job",
+            "application",
             "job_title",
             "service_type",
             "payment_method",
@@ -36,6 +40,29 @@ class PaymentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_at", "user"]
 
+    # 🔒 PREVENT DUPLICATE APPLICATION FEE PAYMENTS
+    def validate(self, attrs):
+        request = self.context["request"]
+        user = request.user
+
+        service_type = attrs.get("service_type")
+        application = attrs.get("application")
+
+        if service_type == "application_fee" and application:
+
+            existing_payment = Payment.objects.filter(
+                user=user,
+                application=application,
+                service_type="application_fee"
+            ).exclude(status="rejected").first()
+
+            if existing_payment:
+                raise serializers.ValidationError(
+                    "A payment for this application already exists."
+                )
+
+        return attrs
+
     def get_user_full_name(self, obj):
         return obj.user.full_name if obj.user else None
 
@@ -44,15 +71,6 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     def get_job_title(self, obj):
         return obj.job.title if obj.job else None
-
-    def update(self, instance, validated_data):
-        request = self.context.get("request")
-
-        if "status" in validated_data and not request.user.is_staff:
-            validated_data.pop("status")
-
-        return super().update(instance, validated_data)
-
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
     class Meta:

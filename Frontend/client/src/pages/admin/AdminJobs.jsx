@@ -1,9 +1,7 @@
-
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import toast from "react-hot-toast" 
+import toast from "react-hot-toast"
 import API from "../../api"
-
 
 function AdminJobs() {
 
@@ -28,72 +26,71 @@ function AdminJobs() {
     responsibilities: "",
     supervision: "",
     specialization: "",
+    tags: [],
     is_active: true
   }
 
   const [activeTab, setActiveTab] = useState("create")
   const [jobs, setJobs] = useState([])
   const [payments, setPayments] = useState([])
-  const [editingId, setEditingId] = useState(null)
   const [methods, setMethods] = useState([])
+  const [tags, setTags] = useState([])
+  const [editingId, setEditingId] = useState(null)
+  const [editingMethodId, setEditingMethodId] = useState(null)
+  const [form, setForm] = useState(emptyForm)
+
   const [methodForm, setMethodForm] = useState({
     name: "",
     code: "",
     instructions: "",
     is_active: true
   })
-  const [editingMethodId, setEditingMethodId] = useState(null)
-  const [form, setForm] = useState(emptyForm)
 
-  // ===== FETCH =====
+  /* ================= FETCH ================= */
+
   const fetchJobs = async () => {
-    const res = await API.get("jobs/")
-    setJobs(res.data.results || res.data)
+    try {
+      const res = await API.get("jobs/")
+      setJobs(res.data.results || res.data)
+    } catch {
+      toast.error("Failed to fetch jobs.")
+    }
+  }
+
+  const fetchTags = async () => {
+    try {
+      const res = await API.get("tags/")
+      setTags(res.data.results || res.data)
+    } catch {
+      toast.error("Failed to fetch tags.")
+    }
+  }
+
+  const fetchPayments = async () => {
+    try {
+      const res = await API.get("payments/")
+      setPayments(res.data.results || res.data)
+    } catch {
+      toast.error("Failed to fetch payments.")
+    }
+  }
+
+  const fetchMethods = async () => {
+    try {
+      const res = await API.get("payments/methods/")
+      setMethods(res.data.results || res.data)
+    } catch {
+      toast.error("Failed to fetch payment methods.")
+    }
   }
 
   useEffect(() => {
     fetchJobs()
+    fetchTags()
   }, [])
 
-  const fetchPayments = async () => {
-  try {
-    const res = await API.get("payments/")
-    setPayments(res.data.results || res.data)
-  } catch (err) {
-    toast.error("Failed to fetch payments.")
-  } 
-}
-const fetchMethods = async () => {
-  try {
-    const res = await API.get("payments/methods/")
-    setMethods(res.data.results || res.data)
-  } catch (err) {
-    toast.error("Failed to fetch payment methods.")
-  }
-}
-const updatePaymentStatus = async (id, status) => {
-  try {
-   
-    await API.patch(`payments/${id}/`, { status })
-    
-    toast.success(`Payment ${status}` )
-    fetchPayments()
-  } catch (err) {
-    
-    toast.error("Failed to update payment.")
-  }
-}
+  /* ================= JOB FORM ================= */
 
-  // ===== CLEAN NUMBERS =====
-  const cleanPayload = (data) => ({
-    ...data,
-    salary: data.salary === "" ? null : Number(data.salary),
-    hours_per_week:
-      data.hours_per_week === "" ? null : Number(data.hours_per_week),
-    vacancies: data.vacancies === "" ? 1 : Number(data.vacancies),
-  })
-
-  // ===== FORM =====
   const handleChange = (e) => {
     const value =
       e.target.type === "checkbox"
@@ -102,52 +99,14 @@ const updatePaymentStatus = async (id, status) => {
 
     setForm({ ...form, [e.target.name]: value })
   }
-  const handleMethodSubmit = async (e) => {
-  e.preventDefault()
 
-  try {
-    if (editingMethodId) {
-      await API.patch(`payments/methods/${editingMethodId}/`, methodForm)
-      toast.success("Method updated")
-    } else {
-      await API.post("payments/methods/", methodForm)
-      toast.success("Method created")
-    }
+  const cleanPayload = (data) => ({
+    ...data,
+    salary: data.salary === "" ? null : Number(data.salary),
+    hours_per_week: data.hours_per_week === "" ? null : Number(data.hours_per_week),
+    vacancies: data.vacancies === "" ? 1 : Number(data.vacancies),
+  })
 
-    setMethodForm({
-      name: "",
-      code: "",
-      instructions: "",
-      is_active: true
-    })
-
-    setEditingMethodId(null)
-    fetchMethods()
-
-  } catch (err) {
-   
-    toast.error("Failed to save method")
-  }
-}
-const handleEditMethod = (method) => {
-  setEditingMethodId(method.id)
-  setMethodForm(method)
-  setActiveTab("methods")
-}
-
-const handleDeleteMethod = async (id) => {
-  if (!window.confirm("Delete this method?")) return
-  await API.delete(`payments/methods/${id}/`)
-  fetchMethods()
-}
-
-  const resetForm = () => {
-    setForm(emptyForm)
-    setEditingId(null)
-  }
-  
-
-  // ===== CREATE / UPDATE =====
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -159,7 +118,6 @@ const handleDeleteMethod = async (id) => {
     })
 
     try {
-
       if (editingId) {
         await API.patch(`jobs/${editingId}/`, payload)
         toast.success("Job updated")
@@ -173,93 +131,124 @@ const handleDeleteMethod = async (id) => {
       setActiveTab("manage")
 
     } catch (err) {
-      
       toast.error(JSON.stringify(err.response?.data))
     }
   }
 
-  // ===== EDIT =====
   const handleEdit = (job) => {
     setEditingId(job.id)
-    setForm({ ...emptyForm, ...job })
+
+    setForm({
+      ...emptyForm,
+      ...job,
+      tags: job.tags ? job.tags.map(t => t.id) : []
+    })
+
     setActiveTab("create")
   }
 
-  const handleCancelEdit = () => {
-    resetForm()
-    setActiveTab("create")
-  }
-
-  // ===== DELETE =====
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this job?")) return
     await API.delete(`jobs/${id}/`)
     fetchJobs()
   }
 
+  const resetForm = () => {
+    setForm(emptyForm)
+    setEditingId(null)
+  }
+
+  /* ================= PAYMENT METHODS ================= */
+
+  const handleMethodSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      if (editingMethodId) {
+        await API.patch(`payments/methods/${editingMethodId}/`, methodForm)
+        toast.success("Method updated")
+      } else {
+        await API.post("payments/methods/", methodForm)
+        toast.success("Method created")
+      }
+
+      setMethodForm({
+        name: "",
+        code: "",
+        instructions: "",
+        is_active: true
+      })
+
+      setEditingMethodId(null)
+      fetchMethods()
+
+    } catch {
+      toast.error("Failed to save method")
+    }
+  }
+
+  const handleEditMethod = (method) => {
+    setEditingMethodId(method.id)
+    setMethodForm(method)
+    setActiveTab("methods")
+  }
+
+  const handleDeleteMethod = async (id) => {
+    if (!window.confirm("Delete this method?")) return
+    await API.delete(`payments/methods/${id}/`)
+    fetchMethods()
+  }
+
+  const updatePaymentStatus = async (id, status) => {
+    try {
+      await API.patch(`payments/${id}/`, { status })
+      toast.success(`Payment ${status}`)
+      fetchPayments()
+    } catch {
+      toast.error("Failed to update payment.")
+    }
+  }
+
+  /* ================= RENDER ================= */
+
   return (
     <div style={wrapper}>
-
       <h1 style={{ marginTop: 0 }}>Admin Dashboard</h1>
 
-      {/* ⭐ ADMIN NAVIGATION */}
-<div style={adminNav}>
+      <div style={adminNav}>
+        <button
+          style={activeTab === "create" ? activeAdminTab : adminTab}
+          onClick={() => { resetForm(); setActiveTab("create") }}
+        >
+          {editingId ? "Edit Job" : "Create Job"}
+        </button>
 
-  <button
-    style={activeTab === "create" ? activeAdminTab : adminTab}
-    onClick={() => {
-      resetForm()
-      setActiveTab("create")
-    }}
-  >
-    {editingId ? "Edit Job" : "Create Job"}
-  </button>
+        <button
+          style={activeTab === "manage" ? activeAdminTab : adminTab}
+          onClick={() => setActiveTab("manage")}
+        >
+          Manage Jobs
+        </button>
 
-  <button
-    style={activeTab === "manage" ? activeAdminTab : adminTab}
-    onClick={() => setActiveTab("manage")}
-  >
-    Manage Jobs
-  </button>
+        <Link to="/admin/applications" style={adminTab}>Applications</Link>
+        <Link to="/admin/support" style={adminTab}>Support</Link>
 
-  <Link
-    to="/admin/applications"
-    style={adminTab}
-  >
-    Applications
-  </Link>
+        <button
+          style={activeTab === "payments" ? activeAdminTab : adminTab}
+          onClick={() => { setActiveTab("payments"); fetchPayments() }}
+        >
+          Payments
+        </button>
 
-  <Link
-    to="/admin/support"
-    style={adminTab}
-  >
-    Support
-  </Link>
+        <button
+          style={activeTab === "methods" ? activeAdminTab : adminTab}
+          onClick={() => { setActiveTab("methods"); fetchMethods() }}
+        >
+          Payment Methods
+        </button>
+      </div>
 
-  <button
-    style={activeTab === "payments" ? activeAdminTab : adminTab}
-    onClick={() => {
-      setActiveTab("payments")
-      fetchPayments()
-    }}
-  >
-    Payments
-  </button>
-
-  <button
-    style={activeTab === "methods" ? activeAdminTab : adminTab}
-    onClick={() => {
-      setActiveTab("methods")
-      fetchMethods()
-    }}
-  >
-    Payment Methods
-  </button>
-
-</div>
-      
-
-      {/* ===== FORM ===== */}
+      {/* CREATE / EDIT JOB */}
       {activeTab === "create" && (
         <form onSubmit={handleSubmit} style={formStyle}>
 
@@ -268,6 +257,8 @@ const handleDeleteMethod = async (id) => {
           <input style={input} name="company_name" placeholder="Company" value={form.company_name} onChange={handleChange} required />
           <input style={input} name="location_city" placeholder="City" value={form.location_city} onChange={handleChange} required />
           <input style={input} name="location_province" placeholder="Province" value={form.location_province} onChange={handleChange} required />
+          <input style={input} name="start_date" placeholder="Start Date" value={form.start_date} onChange={handleChange} />
+          <input style={input} type="number" name="vacancies" placeholder="Vacancies" value={form.vacancies} onChange={handleChange} />
 
           <h3 style={sectionTitle}>Compensation</h3>
           <input style={input} name="salary" placeholder="Salary" value={form.salary} onChange={handleChange} />
@@ -287,82 +278,53 @@ const handleDeleteMethod = async (id) => {
             <option value="remote">Remote</option>
           </select>
 
+          <h3 style={sectionTitle}>Benefits</h3>
+          <textarea style={textarea} name="benefits" placeholder="Benefits" value={form.benefits} onChange={handleChange} />
+
           <h3 style={sectionTitle}>Overview</h3>
-          <input style={input} name="languages" placeholder="Languages" value={form.languages} onChange={handleChange}/>
-          <textarea style={textarea} name="education" placeholder="Education" value={form.education} onChange={handleChange}/>
-          <input style={input} name="experience" placeholder="Experience" value={form.experience} onChange={handleChange}/>
+          <input style={input} name="languages" placeholder="Languages" value={form.languages} onChange={handleChange} />
+          <textarea style={textarea} name="education" placeholder="Education" value={form.education} onChange={handleChange} />
+          <input style={input} name="experience" placeholder="Experience" value={form.experience} onChange={handleChange} />
+          <textarea style={textarea} name="work_environment" placeholder="Work Environment" value={form.work_environment} onChange={handleChange} />
+          <input style={input} name="work_setting" placeholder="Work Setting" value={form.work_setting} onChange={handleChange} />
 
           <h3 style={sectionTitle}>Responsibilities</h3>
-          <textarea style={textarea} name="responsibilities" placeholder="Responsibilities" value={form.responsibilities} onChange={handleChange}/>
-          <input style={input} name="supervision" placeholder="Supervision" value={form.supervision} onChange={handleChange}/>
-          <textarea style={textarea} name="specialization" placeholder="Specialization" value={form.specialization} onChange={handleChange}/>
+          <textarea style={textarea} name="responsibilities" placeholder="Responsibilities" value={form.responsibilities} onChange={handleChange} />
+          <input style={input} name="supervision" placeholder="Supervision" value={form.supervision} onChange={handleChange} />
+          <textarea style={textarea} name="specialization" placeholder="Specialization" value={form.specialization} onChange={handleChange} />
+
+          <h3 style={sectionTitle}>Tags</h3>
+          <select
+            multiple
+            style={{ ...input, height: "120px" }}
+            value={form.tags}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                tags: Array.from(e.target.selectedOptions, o => Number(o.value))
+              })
+            }
+          >
+            {Array.isArray(tags) &&
+              tags.map(tag => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </option>
+              ))}
+          </select>
 
           <label style={{ display: "flex", gap: "10px", alignItems: "center" }}>
             Active
-            <input type="checkbox" name="is_active" checked={form.is_active} onChange={handleChange}/>
+            <input type="checkbox" name="is_active" checked={form.is_active} onChange={handleChange} />
           </label>
 
           <button style={saveBtn}>
             {editingId ? "Update Job" : "Create Job"}
           </button>
-
-          {editingId && (
-            <button type="button" style={cancelBtn} onClick={handleCancelEdit}>
-              Cancel Edit
-            </button>
-          )}
-
         </form>
       )}
-      {activeTab === "payments" && (
-  <div style={{ marginTop: "20px" }}>
 
-    {payments.length === 0 && <p>No payments found.</p>}
-
-    {payments.map(payment => (
-      <div key={payment.id} style={card}>
-        <div>
-          <b>{payment.service_type}</b>
-          <p>User: {payment.user_full_name}</p>
-          <p>Email: {payment.user_email}</p>
-          <p>Job: {payment.job_title || "N/A"}</p>
-          <p style={{ margin: "4px 0" }}>
-            Method: {payment.payment_method_name}
-          </p>
-          <p style={{ margin: "4px 0" }}>
-            Reference: {payment.reference_code}
-          </p>
-          <p style={{ margin: "4px 0" }}>
-            Status: <strong>{payment.status}</strong>
-          </p>
-          <p style={{ fontSize: "12px", color: "#777" }}>
-            {new Date(payment.created_at).toLocaleString()}
-          </p>
-        </div>
-
-        {payment.status === "pending" && (
-          <div>
-            <button
-              onClick={() => updatePaymentStatus(payment.id, "verified")}
-              style={{ marginRight: "8px" }}
-            >
-              Verify
-            </button>
-
-            <button
-              onClick={() => updatePaymentStatus(payment.id, "rejected")}
-            >
-              Reject
-            </button>
-          </div>
-        )}
-      </div>
-    ))}
-
-  </div>
-)}
-
-      {/* ===== MANAGE ===== */}
+      {/* MANAGE JOBS */}
       {activeTab === "manage" && (
         <div>
           {jobs.map(job => (
@@ -371,7 +333,6 @@ const handleDeleteMethod = async (id) => {
                 <b>{job.title}</b>
                 <p style={{ margin: "5px 0", color: "#666" }}>{job.company_name}</p>
               </div>
-
               <div>
                 <button onClick={() => handleEdit(job)}>Edit</button>
                 <button onClick={() => handleDelete(job.id)} style={{ marginLeft: 10 }}>
@@ -382,164 +343,102 @@ const handleDeleteMethod = async (id) => {
           ))}
         </div>
       )}
-      {activeTab === "methods" && (
-  <div style={{ marginTop: "20px" }}>
 
-    <h3>Manage Payment Methods</h3>
-
-    <form onSubmit={handleMethodSubmit} style={{ display:"flex", flexDirection:"column", gap:"10px", marginBottom:"20px" }}>
-      
-      <input
-        style={input}
-        placeholder="Method Name (e.g. PayPal)"
-        value={methodForm.name}
-        onChange={(e) => setMethodForm({ ...methodForm, name: e.target.value })}
-        required
-      />
-
-     
-
-      <textarea
-        style={textarea}
-        placeholder="Instructions shown to users"
-        value={methodForm.instructions}
-        onChange={(e) => setMethodForm({ ...methodForm, instructions: e.target.value })}
-      />
-
-      <label style={{ display:"flex", gap:"10px", alignItems:"center" }}>
-        Active
-        <input
-          type="checkbox"
-          checked={methodForm.is_active}
-          onChange={(e) => setMethodForm({ ...methodForm, is_active: e.target.checked })}
-        />
-      </label>
-
-      <button style={saveBtn}>
-        {editingMethodId ? "Update Method" : "Create Method"}
-      </button>
-    </form>
-
-    {methods.length === 0 && <p>No payment methods found.</p>}
-
-    {methods.map(method => (
-      <div key={method.id} style={card}>
-        <div>
-          <b>{method.name}</b>
-          <p>Code: {method.code}</p>
-          <p style={{ fontSize:"13px", color:"#666" }}>
-            {method.instructions}
+      {/* PAYMENTS */}
+      {activeTab === "payments" && (
+        <div style={{ marginTop: "20px" }}>
+          {payments.length === 0 && <p>No payments found.</p>}
+          {payments.map(payment => (
+            <div key={payment.id} style={card}>
+              <div>
+                <b>{payment.service_type}</b>
+                <p>User: {payment.user_full_name}</p>
+                <p>Email: {payment.user_email}</p>
+          <p>Job: {payment.job_title || "N/A"}</p>
+          <p style={{ margin: "4px 0" }}>
+            Method: {payment.payment_method_name}
           </p>
-          <p>Status: {method.is_active ? "Active" : "Inactive"}</p>
+          <p style={{ margin: "4px 0" }}>
+            Reference: {payment.reference_code}
+          </p>
+                <p>Status: {payment.status}</p>
+                 <p style={{ fontSize: "12px", color: "#777" }}>
+            {new Date(payment.created_at).toLocaleString()}
+          </p>
+              </div>
+              {payment.status === "pending" && (
+                <div>
+                  <button onClick={() => updatePaymentStatus(payment.id, "verified")}>
+                    Verify
+                  </button>
+                  <button onClick={() => updatePaymentStatus(payment.id, "rejected")} style={{ marginLeft: 8 }}>
+                    Reject
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
+      )}
 
-        <div>
-          <button onClick={() => handleEditMethod(method)}>Edit</button>
-          <button
-            onClick={() => handleDeleteMethod(method.id)}
-            style={{ marginLeft:"10px" }}
-          >
-            Delete
-          </button>
+      {/* PAYMENT METHODS */}
+      {activeTab === "methods" && (
+        <div style={{ marginTop: "20px" }}>
+          <form onSubmit={handleMethodSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <input style={input} placeholder="Method Name"
+              value={methodForm.name}
+              onChange={(e) => setMethodForm({ ...methodForm, name: e.target.value })}
+              required />
+            <input style={input} placeholder="Code"
+              value={methodForm.code}
+              onChange={(e) => setMethodForm({ ...methodForm, code: e.target.value })} />
+            <textarea style={textarea} placeholder="Instructions"
+              value={methodForm.instructions}
+              onChange={(e) => setMethodForm({ ...methodForm, instructions: e.target.value })} />
+            <label>
+              Active
+              <input type="checkbox"
+                checked={methodForm.is_active}
+                onChange={(e) => setMethodForm({ ...methodForm, is_active: e.target.checked })} />
+            </label>
+            <button style={saveBtn}>
+              {editingMethodId ? "Update Method" : "Create Method"}
+            </button>
+          </form>
+
+          {methods.map(method => (
+            <div key={method.id} style={card}>
+              <div>
+                <b>{method.name}</b>
+                <p>Status: {method.is_active ? "Active" : "Inactive"}</p>
+                <p>Instructions: {method.instructions}</p>
+                
+              </div>
+              <div>
+                <button onClick={() => handleEditMethod(method)}>Edit</button>
+                <button onClick={() => handleDeleteMethod(method.id)} style={{ marginLeft: 8 }}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-    ))}
-
-  </div>
-)}
+      )}
 
     </div>
   )
 }
 
-/* ===== STYLES ===== */
-
-const wrapper = {
-  maxWidth: "900px",
-  margin: "40px auto",
-  background: "white",
-  padding: "30px",
-  borderRadius: "12px",
-  boxShadow: "0 8px 25px rgba(0,0,0,0.08)"
-}
-
-// const adminNav = { display:"flex", gap:"10px", marginBottom:"20px" }
-
-const adminNavBtn = {
-  padding:"10px 16px",
-  background:"#eee",
-  textDecoration:"none",
-  borderRadius:"6px",
-  color:"#333",
-  fontWeight:"600"
-}
-
-const activeAdminNav = {
-  ...adminNavBtn,
-  background:"#2ecc71",
-  color:"white"
-}
-
-const adminNav = {
-  display: "flex",
-  gap: "12px",
-  flexWrap: "wrap",
-  marginBottom: "25px"
-}
-
-const adminTab = {
-  padding: "10px 18px",
-  background: "#f1f1f1",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "600",
-  textDecoration: "none",
-  color: "#333"
-}
-
-const activeAdminTab = {
-  ...adminTab,
-  background: "#2ecc71",
-  color: "white"
-}
-
-const tabStyle = { padding:"10px 18px", border:"none", background:"#eee", borderRadius:"6px" }
-
-const activeTabStyle = { ...tabStyle, background:"#2ecc71", color:"white" }
-
-const formStyle = { display:"flex", flexDirection:"column", gap:"10px" }
-
-const input = { padding:"10px", border:"1px solid #ddd", borderRadius:"6px" }
-
-const textarea = { ...input, minHeight:"90px" }
-
-const sectionTitle = { marginTop:"20px", marginBottom:"5px", color:"#2ecc71" }
-
-const saveBtn = {
-  background:"#2ecc71",
-  color:"white",
-  border:"none",
-  padding:"12px",
-  borderRadius:"6px",
-  cursor:"pointer"
-}
-
-const cancelBtn = {
-  background:"#ddd",
-  border:"none",
-  padding:"10px",
-  borderRadius:"6px",
-  cursor:"pointer"
-}
-
-const card = {
-  display:"flex",
-  justifyContent:"space-between",
-  padding:"15px",
-  border:"1px solid #ddd",
-  marginBottom:"10px",
-  borderRadius:"6px"
-}
+/* STYLES */
+const wrapper = { maxWidth: "900px", margin: "40px auto", background: "white", padding: "30px", borderRadius: "12px", boxShadow: "0 8px 25px rgba(0,0,0,0.08)" }
+const adminNav = { display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "25px" }
+const adminTab = { padding: "10px 18px", background: "#f1f1f1", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600", textDecoration: "none", color: "#333" }
+const activeAdminTab = { ...adminTab, background: "#2ecc71", color: "white" }
+const formStyle = { display: "flex", flexDirection: "column", gap: "10px" }
+const input = { padding: "10px", border: "1px solid #ddd", borderRadius: "6px" }
+const textarea = { ...input, minHeight: "90px" }
+const sectionTitle = { marginTop: "20px", marginBottom: "5px", color: "#2ecc71" }
+const saveBtn = { background: "#2ecc71", color: "white", border: "none", padding: "12px", borderRadius: "6px", cursor: "pointer" }
+const card = { display: "flex", justifyContent: "space-between", padding: "15px", border: "1px solid #ddd", marginBottom: "10px", borderRadius: "6px" }
 
 export default AdminJobs

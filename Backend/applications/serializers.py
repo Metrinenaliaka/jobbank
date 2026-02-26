@@ -7,6 +7,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     job_title = serializers.CharField(source="job.title", read_only=True)
     company_name = serializers.CharField(source="job.company_name", read_only=True)
+    latest_payment_status = serializers.SerializerMethodField()
 
     applicant_email = serializers.CharField(
         source="applicant.email",
@@ -26,56 +27,43 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "passport_photo",
             "other_documents",
             "status",
+            "latest_payment_status",
             "applied_at"
         ]
         read_only_fields = ["applied_at"]
 
-    # -----------------------------
-    # FILE VALIDATION
-    # -----------------------------
+    def get_latest_payment_status(self, obj):
+        payment = obj.payments.filter(
+            service_type="application_fee"
+        ).order_by("-created_at").first()
 
-    def validate_cv(self, value):
-        if value.content_type != "application/pdf":
-            raise serializers.ValidationError("CV must be a PDF file.")
-        return value
+        if not payment:
+            return "not_paid"
 
-    def validate_cover_letter(self, value):
-        if value.content_type != "application/pdf":
-            raise serializers.ValidationError("Cover letter must be a PDF file.")
-        return value
-
-    def validate_passport_photo(self, value):
-        if not value.content_type.startswith("image/"):
-            raise serializers.ValidationError("Passport photo must be an image file.")
-        return value
+        return payment.status
 
     # -----------------------------
-    # GENERAL VALIDATION
+    # VALIDATION
     # -----------------------------
 
     def validate(self, attrs):
-
         job = attrs.get("job")
-
         if not job:
             return attrs
 
         request = self.context.get("request")
         user = request.user
 
-        # Expired check
         if job.expires_at <= timezone.now():
             raise serializers.ValidationError(
                 {"detail": "This job has expired."}
             )
 
-        # Active check
         if not job.is_active:
             raise serializers.ValidationError(
                 {"detail": "This job is no longer active."}
             )
 
-        # Duplicate prevention
         if Application.objects.filter(
             applicant=user,
             job=job

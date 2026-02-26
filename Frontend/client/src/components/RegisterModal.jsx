@@ -1,5 +1,4 @@
 import { useState, useContext } from "react"
-import toast from "react-hot-toast"
 import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/style.css"
 import { AuthContext } from "../context/AuthContext"
@@ -8,16 +7,8 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
   const { register } = useContext(AuthContext)
 
   const languagesList = [
-    "English",
-    "French",
-    "Spanish",
-    "German",
-    "Arabic",
-    "Mandarin",
-    "Portuguese",
-    "Hindi",
-    "Swahili",
-    "Italian"
+    "English","French","Spanish","German","Arabic",
+    "Mandarin","Portuguese","Hindi","Swahili","Italian"
   ]
 
   const countries = [
@@ -38,14 +29,21 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
     nationality: ""
   })
 
+  const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [successEmail, setSuccessEmail] = useState(null)
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setErrorMessage("")
 
     try {
+      setLoading(true)
+
       const payload = {
         ...form,
         phone_number: form.phone_number.startsWith("+")
@@ -56,16 +54,18 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
           : null
       }
 
-    
-
       await register(payload)
 
-      toast.success("Registered! Check email to verify.")
-      onClose()
+      // Instead of closing modal → show success screen
+      setSuccessEmail(form.email)
 
     } catch (err) {
-     
-      toast.error(JSON.stringify(err.response?.data))
+      setErrorMessage(
+        err.response?.data?.detail ||
+        "Registration failed. Please check your details."
+      )
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -73,129 +73,155 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
     <div style={overlay}>
       <div style={modal}>
 
-        <h2 style={title}>Create Account 🚀</h2>
-        <p style={subtitle}>Start your job journey</p>
+        {/* ================= SUCCESS SCREEN ================= */}
+        {successEmail ? (
+          <>
+            <h2 style={title}>Verify Your Email</h2>
 
-        <form onSubmit={handleSubmit} style={formStyle}>
+            <div style={successBox}>
+              <p style={{ marginBottom: "10px" }}>
+                Check <strong>{successEmail}</strong> to complete your account setup.
+              </p>
 
-          <input
-            style={input}
-            name="full_name"
-            placeholder="Full Name"
-            onChange={handleChange}
-            required
-          />
+              <p style={{ color: "#3498db", fontWeight: "600" }}>
+                Waiting for you to verify...
+              </p>
+            </div>
 
-          <input
-            style={input}
-            name="email"
-            placeholder="Email"
-            onChange={handleChange}
-            required
-          />
+            <button style={primaryBtn} onClick={onClose}>
+              Close
+            </button>
+          </>
+        ) : (
+          <>
+            <h2 style={title}>Create Account 🚀</h2>
+            <p style={subtitle}>Start your job journey</p>
 
-          <input
-            style={input}
-            type="password"
-            name="password"
-            placeholder="Password"
-            onChange={handleChange}
-            required
-          />
+            {/* ================= INLINE ERROR ================= */}
+            {errorMessage && (
+              <div style={errorBox}>
+                <span>{errorMessage}</span>
+                <button
+                  style={closeInline}
+                  onClick={() => setErrorMessage("")}
+                >
+                  ×
+                </button>
+              </div>
+            )}
 
-          <input
-            style={input}
-            type="number"
-            name="year_of_birth"
-            placeholder="Year of Birth"
-            onChange={handleChange}
-          />
+            <form onSubmit={handleSubmit} style={formStyle}>
 
-          {/* Languages */}
-          <select
-            style={input}
-            name="languages"
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Language</option>
-            {languagesList.map((lang) => (
-              <option key={lang} value={lang}>
-                {lang}
-              </option>
-            ))}
-          </select>
+              <input
+                style={input}
+                name="full_name"
+                placeholder="Full Name"
+                onChange={handleChange}
+                required
+              />
 
-          {/* Phone Input (E.164 compatible) */}
-          <PhoneInput
-            country={"ca"}
-            value={form.phone_number}
-            onChange={(phone) =>
-              setForm({ ...form, phone_number: phone })
-            }
-            inputStyle={{
-              width: "100%",
-              borderRadius: "6px",
-              border: "1px solid #ddd",
-              height: "42px"
-            }}
-            containerStyle={{ width: "100%" }}
-          />
+              <input
+                style={input}
+                name="email"
+                placeholder="Email"
+                onChange={handleChange}
+                required
+              />
 
-          {/* Nationality */}
-          <select
-            style={input}
-            name="nationality"
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Nationality</option>
-            {countries.map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </select>
+              <input
+                style={input}
+                type="password"
+                name="password"
+                placeholder="Password"
+                onChange={handleChange}
+                required
+              />
 
-          <select
-            style={input}
-            name="gender"
-            onChange={handleChange}
-          >
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
+              <input
+                style={input}
+                type="number"
+                name="year_of_birth"
+                placeholder="Year of Birth"
+                onChange={handleChange}
+              />
 
-          <button style={primaryBtn} type="submit">
-            Sign Up
-          </button>
+              <select
+                style={input}
+                name="languages"
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select Language</option>
+                {languagesList.map((lang) => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
 
-        </form>
+              <PhoneInput
+                country={"ca"}
+                value={form.phone_number}
+                onChange={(phone) =>
+                  setForm({ ...form, phone_number: phone })
+                }
+                inputStyle={{
+                  width: "100%",
+                  borderRadius: "6px",
+                  border: "1px solid #ddd",
+                  height: "42px"
+                }}
+              />
 
-        <div style={loginText}>
-          Already have an account?{" "}
-          <span
-            style={loginLink}
-            onClick={() => {
-              onClose()
-              onSwitchToLogin()
-            }}
-          >
-            Login
-          </span>
-        </div>
+              <select
+                style={input}
+                name="nationality"
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select Nationality</option>
+                {countries.map((country) => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
 
-        <button style={closeBtn} onClick={onClose}>
-          Cancel
-        </button>
+              <select
+                style={input}
+                name="gender"
+                onChange={handleChange}
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
 
+              <button style={primaryBtn} type="submit" disabled={loading}>
+                {loading ? "Creating Account..." : "Sign Up"}
+              </button>
+            </form>
+
+            <div style={loginText}>
+              Already have an account?{" "}
+              <span
+                style={loginLink}
+                onClick={() => {
+                  onClose()
+                  onSwitchToLogin()
+                }}
+              >
+                Login
+              </span>
+            </div>
+
+            <button style={closeBtn} onClick={onClose}>
+              Cancel
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
 }
 
-/* ===== Styles ===== */
+/* ================= STYLES ================= */
 
 const overlay = {
   position: "fixed",
@@ -209,7 +235,7 @@ const overlay = {
 
 const modal = {
   background: "white",
-  width: "400px",
+  width: "420px",
   maxHeight: "90vh",
   overflowY: "auto",
   padding: "30px",
@@ -240,7 +266,8 @@ const primaryBtn = {
   padding: "12px",
   borderRadius: "6px",
   cursor: "pointer",
-  fontWeight: "600"
+  fontWeight: "600",
+  marginTop: "10px"
 }
 
 const loginText = {
@@ -265,6 +292,34 @@ const closeBtn = {
   background: "#f5f5f5",
   borderRadius: "6px",
   cursor: "pointer"
+}
+
+const errorBox = {
+  background: "#ffe6e6",
+  color: "#c0392b",
+  padding: "10px 14px",
+  borderRadius: "6px",
+  marginBottom: "15px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  fontSize: "14px"
+}
+
+const closeInline = {
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  fontWeight: "bold",
+  fontSize: "16px"
+}
+
+const successBox = {
+  background: "#eef7ff",
+  padding: "20px",
+  borderRadius: "8px",
+  marginBottom: "20px",
+  textAlign: "center"
 }
 
 export default RegisterModal

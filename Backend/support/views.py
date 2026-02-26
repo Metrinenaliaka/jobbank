@@ -1,9 +1,14 @@
 from rest_framework import viewsets, permissions
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAdminUser
 from django.utils import timezone
-from .models import SupportTicket
-from .serializers import SupportTicketSerializer
+from .models import SupportTicket, SiteSetting
+from .serializers import SupportTicketSerializer, SiteSettingSerializer
 
 
 class SupportTicketViewSet(viewsets.ModelViewSet):
@@ -71,3 +76,25 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
                 recipient_list=[ticket.user.email],
                 fail_silently=False,
             )
+class SiteSettingViewSet(ViewSet):
+    permission_classes = [IsAdminUser]
+
+    def list(self, request):
+        setting = SiteSetting.objects.first()
+        serializer = SiteSettingSerializer(setting)
+        return Response(serializer.data)
+
+    def partial_update(self, request, pk=None):
+        setting = SiteSetting.objects.first()
+
+        serializer = SiteSettingSerializer(
+            setting,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,4 @@
-import { useState, useEffect, useContext } from "react"
-import toast from "react-hot-toast"
+import { useState, useContext } from "react"
 import API from "../api"
 import { AuthContext } from "../context/AuthContext"
 
@@ -11,14 +10,19 @@ function SupportChat() {
   const [subject, setSubject] = useState("")
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
+  const [successMsg, setSuccessMsg] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
 
-  // 🚫 DO NOT SHOW FOR ADMIN
+  // 🚫 DO NOT SHOW FOR ADMIN OR UNAUTHENTICATED
   if (!user || user.is_staff) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!subject || !message) return
+
+    setSuccessMsg("")
+    setErrorMsg("")
 
     try {
       setLoading(true)
@@ -28,14 +32,12 @@ function SupportChat() {
         message
       })
 
-      toast.success("Support message sent 👍")
+      setSuccessMsg("Support message sent successfully 👍")
       setSubject("")
       setMessage("")
-      setOpen(false)
 
     } catch (err) {
-     
-      toast.error("Failed to send support message.")
+      setErrorMsg("Failed to send support message. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -51,9 +53,51 @@ function SupportChat() {
       {/* CHAT POPUP */}
       {open && (
         <div style={chatBox}>
-          <h3 style={{ marginTop: 0 }}>Support Chat</h3>
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {/* HEADER */}
+          <div style={chatHeader}>
+            <h3 style={{ margin: 0 }}>Support Chat</h3>
+            <button
+              style={closeBtn}
+              onClick={() => setOpen(false)}
+            >
+              ×
+            </button>
+          </div>
+          <p style={greetingText}>
+            Hello 👋 We’d be delighted to hear from you.
+          </p>
+
+          {/* INLINE SUCCESS */}
+          {successMsg && (
+            <div style={successBox}>
+              <span>{successMsg}</span>
+              <button
+                style={inlineCloseBtn}
+                onClick={() => setSuccessMsg("")}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          {/* INLINE ERROR */}
+          {errorMsg && (
+            <div style={errorBox}>
+              <span>{errorMsg}</span>
+              <button
+                style={inlineCloseBtn}
+                onClick={() => setErrorMsg("")}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
             <input
               style={input}
               placeholder="Subject"
@@ -80,7 +124,7 @@ function SupportChat() {
   )
 }
 
-/* ===== STYLES ===== */
+/* ================= STYLES ================= */
 
 const floatingBtn = {
   position: "fixed",
@@ -94,7 +138,8 @@ const floatingBtn = {
   color: "white",
   fontSize: "24px",
   cursor: "pointer",
-  zIndex: 999
+  zIndex: 999,
+  boxShadow: "0 6px 20px rgba(0,0,0,0.2)"
 }
 
 const chatBox = {
@@ -104,9 +149,25 @@ const chatBox = {
   width: "320px",
   background: "white",
   padding: "15px",
-  borderRadius: "10px",
-  boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
+  borderRadius: "12px",
+  boxShadow: "0 8px 25px rgba(0,0,0,0.25)",
   zIndex: 999
+}
+
+const chatHeader = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "10px"
+}
+
+const closeBtn = {
+  background: "transparent",
+  border: "none",
+  fontSize: "20px",
+  cursor: "pointer",
+  color: "#555",
+  fontWeight: "bold"
 }
 
 const input = {
@@ -117,7 +178,8 @@ const input = {
 
 const textarea = {
   ...input,
-  minHeight: "100px"
+  minHeight: "100px",
+  resize: "none"
 }
 
 const sendBtn = {
@@ -126,7 +188,46 @@ const sendBtn = {
   border: "none",
   padding: "10px",
   borderRadius: "6px",
-  cursor: "pointer"
+  cursor: "pointer",
+  fontWeight: "600"
+}
+
+const successBox = {
+  background: "#e6f9f0",
+  color: "#1e8449",
+  padding: "8px 12px",
+  borderRadius: "6px",
+  marginBottom: "10px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  fontSize: "13px"
+}
+
+const errorBox = {
+  background: "#ffe6e6",
+  color: "#c0392b",
+  padding: "8px 12px",
+  borderRadius: "6px",
+  marginBottom: "10px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  fontSize: "13px"
+}
+
+const inlineCloseBtn = {
+  background: "transparent",
+  border: "none",
+  fontWeight: "bold",
+  cursor: "pointer",
+  fontSize: "14px"
+}
+const greetingText = {
+  fontSize: "13px",
+  color: "#555",
+  marginBottom: "12px",
+  lineHeight: "1.4"
 }
 
 export default SupportChat

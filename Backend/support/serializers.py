@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SupportTicket
+from .models import SupportTicket, SiteSetting
 
 
 class SupportTicketSerializer(serializers.ModelSerializer):
@@ -26,3 +26,8 @@ class SupportTicketSerializer(serializers.ModelSerializer):
             "resolved_at",
             "user_email",
         ]
+
+class SiteSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteSetting
+        fields = ["id", "whatsapp_link", "is_whatsapp_active"]

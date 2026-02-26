@@ -5,8 +5,8 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from .models import JobListing
-from .serializers import JobSmallSerializer, JobDetailSerializer
+from .models import JobListing, Tag
+from .serializers import JobSmallSerializer, JobDetailSerializer, TagSerializer
 from .pagination import ListingPagination
 
 
@@ -80,3 +80,7 @@ class JobListingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [permissions.IsAdminUser]

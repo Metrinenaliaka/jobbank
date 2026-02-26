@@ -1,49 +1,89 @@
 import { useState, useContext } from "react"
 import { useNavigate } from "react-router-dom"
 
-import Footer from "../components/Footer"
 import HeroSection from "../components/Hero"
 import FeaturesSection from "../components/Features"
 import StepsSection from "../components/Steps"
+import PlanSection from "../components/PlanSection"
+import SupportServicesSection from "../components/SupportServicesSection"
+import SupportStoryboardSection from "../components/SupportStoryboardSection"
+import VisionMissionSection from "../components/VisionMissionSection"
 import CTASection from "../components/CTASection"
 import RegisterModal from "../components/RegisterModal"
+import LoginModal from "../components/LoginModal"
+import Footer from "../components/Footer"
 import { AuthContext } from "../context/AuthContext"
+import HomeSectionCarousel from "../components/HomeSectionCarousel"
 
 function Home() {
   const [showRegister, setShowRegister] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
+  const [showSupportChat, setShowSupportChat] = useState(false)
+  
+
   const { user } = useContext(AuthContext)
   const navigate = useNavigate()
+  const handleOpenSupportChat = () => {
+  setShowSupportChat(true)
+}
 
-  const handleGetStarted = () => {
+
+  const handlePrimaryAction = () => {
     if (user) {
-      // User is logged in → go to jobs page
       navigate("/jobs")
     } else {
-      // User not logged in → show register modal
       setShowRegister(true)
     }
   }
 
-  const closeRegister = () => {
-    setShowRegister(false)
+  const handleDocumentReview = () => {
+    if (user) {
+      navigate("/jobs") // change if you create a review page later
+    } else {
+      setShowRegister(true)
+    }
   }
 
   return (
     <>
-      <HeroSection openRegister={handleGetStarted} />
-      <FeaturesSection />
-      <StepsSection />
-      <CTASection openRegister={handleGetStarted} />
+      {/* HERO */}
+      <HeroSection openRegister={handlePrimaryAction} />
 
+      {/* CORE FEATURES */}
+      <FeaturesSection />
+
+      {/* HOW IT WORKS */}
+      <StepsSection />
+
+     <HomeSectionCarousel
+  onPrimaryAction={handlePrimaryAction}
+  onOpenSupportChat={handleOpenSupportChat}
+/>
+      {/* FINAL CTA */}
+      <CTASection openRegister={handlePrimaryAction} />
+
+     
+
+      {/* REGISTER MODAL */}
       {showRegister && (
         <RegisterModal
-          onClose={closeRegister}
+          onClose={() => setShowRegister(false)}
           onSwitchToLogin={() => {
             setShowRegister(false)
-            // if you later add LoginModal, trigger it here
+            setShowLogin(true)
           }}
         />
       )}
+
+      {/* LOGIN MODAL */}
+      {showLogin && (
+        <LoginModal
+          onClose={() => setShowLogin(false)}
+        />
+      )}
+      {showSupportChat && (
+  <SupportChat onClose={() => setShowSupportChat(false)} />
+)}
     </>
   )
 }

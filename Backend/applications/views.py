@@ -2,6 +2,10 @@ from rest_framework import viewsets, permissions
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import Application
+from payments.models import Payment, PaymentMethod
+from django.utils import timezone
+
+
 from .serializers import ApplicationSerializer
 
 
@@ -42,19 +46,22 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         application = serializer.save(
             applicant=self.request.user
         )
+        
 
-        # Send confirmation email
         send_mail(
-            subject="Application Submitted Successfully",
-            message=(
-                f"You applied for {application.job.title}.\n\n"
-                f"Status: Applied\n\n"
-                "We will notify you if your status changes."
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[self.request.user.email],
-            fail_silently=False,
-        )
+        subject="Application Received - Payment Required",
+        message=(
+            f"Dear {self.request.user.full_name},\n\n"
+            f"We have received your documents for {application.job.title}.\n\n"
+            "To proceed to the next stage, please pay 350 CAD.\n\n"
+            "Once your payment is verified, you will be notified.\n\n"
+            "Sincerely,\n"
+            "Simizi Team"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[self.request.user.email],
+        fail_silently=False,
+    )
 
     # =============================
     # UPDATE STATUS (ADMIN ONLY)
@@ -62,15 +69,54 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
 
         old_status = self.get_object().status
-        application = serializer.save()
+        old_payment_status = self.get_object().payment_status
 
-        # Send email only if status actually changed
+        application =serializer.save()
+
+        # =========================
+        # PAYMENT STATUS CHANGE
+        # =========================
+        if old_payment_status != application.payment_status:
+
+            if application.payment_status == "paid":
+                application.payment_verified_at = timezone.now()
+                application.save()
+
+                send_mail(
+                    subject="Payment Verified",
+                    message=(
+                        f"Dear {application.applicant.full_name},\n\n"
+                        "Your payment has been verified.\n\n"
+                        "Your application is now under review.\n\n"
+                        "Simizi Team"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[application.applicant.email],
+                    fail_silently=False,
+                )
+
+            elif application.payment_status == "rejected":
+                send_mail(
+                    subject="Payment Rejected",
+                    message=(
+                        f"Dear {application.applicant.full_name},\n\n"
+                        "Your payment could not be verified.\n\n"
+                        "Please contact support or try again.\n\n"
+                        "Simizi Team"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[application.applicant.email],
+                    fail_silently=False,
+                )
+
+        # =========================
+        # APPLICATION STATUS CHANGE
+        # =========================
         if old_status != application.status:
-
             send_mail(
                 subject="Application Status Updated",
                 message=(
-                    f"Your application for {application.job.title} "
+                    f"Dear {application.applicant.full_name},\n\n"
                     f"has been updated.\n\n"
                     f"New Status: {application.status.capitalize()}"
                 ),

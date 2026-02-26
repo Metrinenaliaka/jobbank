@@ -9,6 +9,8 @@ from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, Re
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
+from django.http import HttpResponse
+from django.utils.html import format_html
 from django.contrib.auth.hashers import make_password
 
 
@@ -40,21 +42,22 @@ class VerifyEmailView(generics.GenericAPIView):
     permission_classes = [AllowAny]
 
     def get(self, request, token):
-        verification = get_object_or_404(EmailVerification, token=token)
+
+        verification = EmailVerification.objects.filter(token=token).first()
+
+        if not verification:
+            return redirect("http://127.0.0.1:5173/email-verified?status=invalid")
 
         if verification.is_expired():
             verification.delete()
-            return redirect("http://127.0.0.1:5173/?verified=expired")
+            return redirect("http://127.0.0.1:5173/email-verified?status=expired")
 
         user = verification.user
         user.is_active = True
         user.save()
-
         verification.delete()
 
-        # 🔥 Redirect to frontend homepage
-        return redirect("http://127.0.0.1:5173/?verified=true")
-
+        return redirect("http://127.0.0.1:5173/email-verified?status=success")
 class ResendVerificationView(generics.GenericAPIView):
     serializer_class = ResendVerificationSerializer
     permission_classes = [AllowAny]

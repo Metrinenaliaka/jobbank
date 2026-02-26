@@ -40,3 +40,9 @@ class SupportTicket(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.subject}"
+class SiteSetting(models.Model):
+    whatsapp_link = models.URLField(blank=True, null=True)
+    is_whatsapp_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return "Site Settings"

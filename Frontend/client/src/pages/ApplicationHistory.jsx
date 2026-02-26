@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import toast from "react-hot-toast"
 import API from "../api"
+import PaymentModal from "../components/PaymentModal"
 
-const STEPS = [
+const BASE_STEPS = [
   "applied",
   "reviewed",
   "assessment",
@@ -13,20 +13,31 @@ const STEPS = [
 function ApplicationHistory() {
 
   const [applications, setApplications] = useState([])
+  const [selectedApp, setSelectedApp] = useState(null)
 
   useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const res = await API.get("applications/")
-        setApplications(res.data.results || res.data)
-      } catch (err) {
-        
-        toast.error("Failed to fetch applications")
-      }
-    }
-
     fetchApplications()
   }, [])
+
+  const fetchApplications = async () => {
+    try {
+      const res = await API.get("applications/")
+      setApplications(res.data.results || res.data)
+    } catch (err) {
+      console.error("Failed to fetch applications", err)
+    }
+  }
+
+  // ✅ UPDATE ONLY ONE APPLICATION AFTER PAYMENT
+  const handlePaymentSuccess = (applicationId) => {
+    setApplications(prev =>
+      prev.map(app =>
+        app.id === applicationId
+          ? { ...app, latest_payment_status: "pending" }
+          : app
+      )
+    )
+  }
 
   return (
     <div style={wrapper}>
@@ -38,47 +49,71 @@ function ApplicationHistory() {
 
       {applications.map(app => {
 
-        const currentIndex = STEPS.indexOf(app.status)
+        const paymentStatus = app.latest_payment_status || "not_paid"
+
+        const canMakePayment =
+          paymentStatus === "not_paid" ||
+          paymentStatus === "rejected"
+
+        const isPending = paymentStatus === "pending"
+        const isVerified = paymentStatus === "verified"
+        const isRejected = paymentStatus === "rejected"
+
+        let steps = [...BASE_STEPS]
+
+        if (app.status === "applied") {
+          steps = [
+            "applied",
+            "pending_payment",
+            "reviewed",
+            "assessment",
+            "interview",
+            "accepted"
+          ]
+        }
+
+        let trackerStep = app.status
+
+        if (app.status === "applied") {
+          if (isPending || isVerified) {
+            trackerStep = "pending_payment"
+          }
+        }
+
+        const currentIndex = steps.indexOf(trackerStep)
 
         return (
           <div key={app.id} style={card}>
 
-            {/* ===== JOB INFO ===== */}
             <h3 style={{ marginBottom: "6px" }}>
               {app.job_title || "Job Application"}
             </h3>
 
-            <p style={muted}>
-              {app.company_name || ""}
-            </p>
+            <p style={muted}>{app.company_name || ""}</p>
 
             <p style={muted}>
               Applied on{" "}
               {new Date(app.applied_at).toLocaleDateString()}
             </p>
 
-            {/* ===== TRACKER ===== */}
+            {/* TRACKER */}
             <div style={trackerContainer}>
-              {STEPS.map((step, index) => {
+              {steps.map((step, index) => {
 
                 const active = index <= currentIndex
 
                 return (
                   <div key={step} style={stepWrapper}>
 
-                    {/* LINE LEFT */}
                     {index !== 0 && (
                       <div
                         style={{
                           ...line,
-                          background: index <= currentIndex
-                            ? "#2ecc71"
-                            : "#ddd"
+                          background: active ? "#2ecc71" : "#ddd"
                         }}
                       />
                     )}
 
-                    {/* CIRCLE */}
                     <div
                       style={{
                         ...circle,
@@ -86,23 +121,70 @@ function ApplicationHistory() {
                       }}
                     />
 
-                    {/* LABEL */}
                     <span style={label}>
-                      {step}
+                      {step.replace("_", " ")}
                     </span>
                   </div>
                 )
               })}
             </div>
 
+            {/* PAYMENT SECTION */}
+
+            {canMakePayment && (
+              <div style={paymentBox}>
+                <p style={{ fontWeight: "600", marginBottom: "10px" }}>
+                  350 CAD Application Processing Fee Required
+                </p>
+
+                <button
+                  style={payBtn}
+                  onClick={() => setSelectedApp(app)}
+                >
+                  Click to Pay
+                </button>
+              </div>
+            )}
+
+            {isPending && (
+              <div style={pendingBox}>
+                Payment Submitted – Awaiting Verification
+              </div>
+            )}
+
+            {isVerified && (
+              <div style={paidBox}>
+                Payment Verified ✓
+              </div>
+            )}
+
+            {isRejected && (
+              <div style={rejectedBox}>
+                Payment Rejected – Please try again.
+              </div>
+            )}
+
           </div>
         )
       })}
+
+      {/* PAYMENT MODAL */}
+      {selectedApp && (
+        <PaymentModal
+          applicationId={selectedApp.id}
+          jobId={selectedApp.job}
+          onSuccess={handlePaymentSuccess}
+          onClose={() => setSelectedApp(null)}
+        />
+      )}
+
     </div>
   )
 }
 
-/* ===== STYLES ===== */
+export default ApplicationHistory
+
+/* ================= STYLES ================= */
 
 const wrapper = {
   maxWidth: "950px",
@@ -121,8 +203,6 @@ const muted = {
   color: "#666",
   margin: "3px 0"
 }
-
-/* ===== TRACKER ===== */
 
 const trackerContainer = {
   display: "flex",
@@ -166,5 +246,36 @@ const label = {
   textAlign: "center"
 }
 
+const paymentBox = {
+  marginTop: "20px",
+  padding: "15px",
+  background: "#fff8e1",
+  borderRadius: "8px"
+}
 
-export default ApplicationHistory
+const payBtn = {
+  background: "#2ecc71",
+  color: "white",
+  border: "none",
+  padding: "10px 18px",
+  borderRadius: "6px",
+  cursor: "pointer"
+}
+
+const pendingBox = {
+  marginTop: "15px",
+  color: "#f39c12",
+  fontWeight: "600"
+}
+
+const paidBox = {
+  marginTop: "15px",
+  color: "#2ecc71",
+  fontWeight: "600"
+}
+
+const rejectedBox = {
+  marginTop: "15px",
+  color: "red",
+  fontWeight: "600"
+}
