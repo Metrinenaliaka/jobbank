@@ -131,6 +131,7 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": False,
 }
 
+TELEGRAM_BOT_TOKEN = config("TELEGRAM_BOT_TOKEN")
 
 # -----------------------
 # Email

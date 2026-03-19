@@ -29,35 +29,36 @@ function App() {
     <BrowserRouter>
 
       <Navbar
-        onLoginClick={() => setShowLogin(true)}
-        onSignupClick={() => setShowSignup(true)}
-      />
-      <WhatsAppBar />
+  onLoginClick={() => setShowLogin(true)}
+  onSignupClick={() => setShowSignup(true)}
+/>
+<div style={pageWrapper}>
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/jobs" element={<Jobs />} />
-        <Route path="/jobs/:id" element={<JobDetail />} />
-        <Route path="/applications" element={<ApplicationHistory />} />
-        <Route path="/resources" element={<Resources />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/email-verified" element={<EmailVerified />} />
+  <WhatsAppBar />
 
-        {/* 🔥 CLEAN ADMIN STRUCTURE */}
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <AdminLayout />
-            </AdminRoute>
-          }
-        >
-          <Route path="jobs" element={<AdminJobs />} />
-          <Route path="applications" element={<AdminApplications />} />
-          <Route path="support" element={<AdminSupport />} />
-        </Route>
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/jobs" element={<Jobs />} />
+    <Route path="/jobs/:id" element={<JobDetail />} />
+    <Route path="/applications" element={<ApplicationHistory />} />
+    <Route path="/resources" element={<Resources />} />
+    <Route path="/reset-password/:token" element={<ResetPassword />} />
+    <Route path="/email-verified" element={<EmailVerified />} />
 
-      </Routes>
+    <Route
+      path="/admin"
+      element={
+        <AdminRoute>
+          <AdminLayout />
+        </AdminRoute>
+      }
+    >
+      <Route path="jobs" element={<AdminJobs />} />
+      <Route path="applications" element={<AdminApplications />} />
+      <Route path="support" element={<AdminSupport />} />
+    </Route>
+  </Routes>
+</div>
 
       <SupportChat />
       <Toaster position="top-right" />
@@ -81,3 +82,7 @@ function App() {
 }
 
 export default App
+
+const pageWrapper = {
+  paddingTop: "150px"   // match navbar height
+}

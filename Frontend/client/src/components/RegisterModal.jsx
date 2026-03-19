@@ -4,6 +4,7 @@ import "react-phone-input-2/lib/style.css"
 import { AuthContext } from "../context/AuthContext"
 
 function RegisterModal({ onClose, onSwitchToLogin }) {
+
   const { register } = useContext(AuthContext)
 
   const languagesList = [
@@ -17,6 +18,33 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
     "China","Brazil","Italy","Spain","Mexico",
     "Japan","Netherlands","Sweden","Norway","Denmark"
   ]
+  const fieldLabels = {
+  email: "Email",
+  phone_number: "Phone number",
+  password: "Password",
+  full_name: "Full name"
+}
+ const getErrorMessage = (error) => {
+
+  const data = error.response?.data
+
+  if (!data) return "Registration failed. Please try again."
+
+  if (data.detail) return data.detail
+
+  const messages = []
+
+  for (const key in data) {
+    if (Array.isArray(data[key])) {
+
+      const label = fieldLabels[key] || key
+
+      messages.push(`${label}: ${data[key].join(", ")}`)
+    }
+  }
+
+  return messages.join(" | ")
+}
 
   const [form, setForm] = useState({
     full_name: "",
@@ -31,17 +59,19 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
 
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
-  const [successEmail, setSuccessEmail] = useState(null)
+  const [successData, setSuccessData] = useState(null)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
   const handleSubmit = async (e) => {
+
     e.preventDefault()
     setErrorMessage("")
 
     try {
+
       setLoading(true)
 
       const payload = {
@@ -54,50 +84,74 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
           : null
       }
 
-      await register(payload)
+      const response = await register(payload)
 
-      // Instead of closing modal → show success screen
-      setSuccessEmail(form.email)
+      setSuccessData({
+        email: form.email,
+        userId: response?.data?.id
+      })
 
     } catch (err) {
-      setErrorMessage(
-        err.response?.data?.detail ||
-        "Registration failed. Please check your details."
-      )
+
+      setErrorMessage(getErrorMessage(err))
+
     } finally {
+
       setLoading(false)
+
     }
+
   }
 
   return (
     <div style={overlay}>
       <div style={modal}>
 
-        {/* ================= SUCCESS SCREEN ================= */}
-        {successEmail ? (
+        {successData ? (
+
           <>
             <h2 style={title}>Verify Your Email</h2>
 
             <div style={successBox}>
+
               <p style={{ marginBottom: "10px" }}>
-                Check <strong>{successEmail}</strong> to complete your account setup.
+                Check <strong>{successData.email}</strong> to complete your account setup.
               </p>
 
               <p style={{ color: "#3498db", fontWeight: "600" }}>
                 Waiting for you to verify...
               </p>
+
+              <div style={{ marginTop: "20px" }}>
+
+                <p style={{ fontSize: "14px", marginBottom: "10px" }}>
+                  Want faster notifications?
+                </p>
+
+                <a
+                  href={`https://t.me/SimiziBot?start=${successData.userId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={telegramBtn}
+                >
+                  Connect Telegram
+                </a>
+
+              </div>
+
             </div>
 
             <button style={primaryBtn} onClick={onClose}>
               Close
             </button>
           </>
+
         ) : (
+
           <>
             <h2 style={title}>Create Account 🚀</h2>
             <p style={subtitle}>Start your job journey</p>
 
-            {/* ================= INLINE ERROR ================= */}
             {errorMessage && (
               <div style={errorBox}>
                 <span>{errorMessage}</span>
@@ -196,6 +250,7 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
               <button style={primaryBtn} type="submit" disabled={loading}>
                 {loading ? "Creating Account..." : "Sign Up"}
               </button>
+
             </form>
 
             <div style={loginText}>
@@ -230,7 +285,7 @@ const overlay = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  zIndex: 999
+  zIndex: 3000
 }
 
 const modal = {
@@ -268,6 +323,16 @@ const primaryBtn = {
   cursor: "pointer",
   fontWeight: "600",
   marginTop: "10px"
+}
+
+const telegramBtn = {
+  display: "inline-block",
+  background: "#0088cc",
+  color: "white",
+  padding: "10px 14px",
+  borderRadius: "6px",
+  textDecoration: "none",
+  fontWeight: "600"
 }
 
 const loginText = {

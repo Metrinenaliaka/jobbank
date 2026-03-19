@@ -55,8 +55,9 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             f"We have received your documents for {application.job.title}.\n\n"
             "To proceed to the next stage, please pay 350 CAD.\n\n"
             "Once your payment is verified, you will be notified.\n\n"
-            "Sincerely,\n"
-            "Simizi Team"
+            "Warm regards,\n"
+            "The Simizi Team\n"
+            "🌐 https://simizi.net\n"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[self.request.user.email],
@@ -88,7 +89,9 @@ class ApplicationViewSet(viewsets.ModelViewSet):
                         f"Dear {application.applicant.full_name},\n\n"
                         "Your payment has been verified.\n\n"
                         "Your application is now under review.\n\n"
-                        "Simizi Team"
+                        "Warm regards,\n"
+                        "The Simizi Team\n"
+                        "🌐 https://simizi.net\n"
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[application.applicant.email],
@@ -102,7 +105,9 @@ class ApplicationViewSet(viewsets.ModelViewSet):
                         f"Dear {application.applicant.full_name},\n\n"
                         "Your payment could not be verified.\n\n"
                         "Please contact support or try again.\n\n"
-                        "Simizi Team"
+                        "Warm regards,\n"
+                        "The Simizi Team\n"
+                        "🌐 https://simizi.net\n"
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[application.applicant.email],
@@ -117,8 +122,11 @@ class ApplicationViewSet(viewsets.ModelViewSet):
                 subject="Application Status Updated",
                 message=(
                     f"Dear {application.applicant.full_name},\n\n"
-                    f"has been updated.\n\n"
-                    f"New Status: {application.status.capitalize()}"
+                    f"Your application for {application.job.title} has been updated.\n\n"
+                    f"New Status: {application.status.capitalize()}\n\n"
+                    "Warm regards,\n"
+                    "The Simizi Team\n"
+                    "🌐 https://simizi.net\n"
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[application.applicant.email],

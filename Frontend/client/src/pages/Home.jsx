@@ -1,4 +1,4 @@
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 
 import HeroSection from "../components/Hero"
@@ -19,6 +19,9 @@ function Home() {
   const [showRegister, setShowRegister] = useState(false)
   const [showLogin, setShowLogin] = useState(false)
   const [showSupportChat, setShowSupportChat] = useState(false)
+  useEffect(() => {
+  document.title = "Simizi | Home"
+}, [])
   
 
   const { user } = useContext(AuthContext)
@@ -86,6 +89,7 @@ function Home() {
 )}
     </>
   )
+  
 }
 
 export default Home

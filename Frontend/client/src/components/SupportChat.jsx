@@ -138,7 +138,7 @@ const floatingBtn = {
   color: "white",
   fontSize: "24px",
   cursor: "pointer",
-  zIndex: 999,
+  zIndex: 3000,
   boxShadow: "0 6px 20px rgba(0,0,0,0.2)"
 }
 
@@ -151,7 +151,7 @@ const chatBox = {
   padding: "15px",
   borderRadius: "12px",
   boxShadow: "0 8px 25px rgba(0,0,0,0.25)",
-  zIndex: 999
+  zIndex: 4000
 }
 
 const chatHeader = {

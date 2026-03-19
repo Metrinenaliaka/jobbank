@@ -12,6 +12,7 @@ function WhatsAppBar() {
       try {
         const res = await API.get("site-settings/")
         setSettings(res.data)
+        console.log("WhatsApp settings:", res.data)
       } catch (err) {
         console.error("Failed to load site settings")
       }
@@ -56,16 +57,20 @@ export default WhatsAppBar
 
 /* ===== STYLES ===== */
 
-const wrapper = {
+const wrapper = {  
+  top: "300px",   // adjust to exact navbar height
+  left: 0,
+  width: "100%",
   display: "flex",
+  boxSizing: "border-box",
   justifyContent: "space-between",
   alignItems: "center",
-  background: "#ffffff",
   padding: "14px 24px",
   textDecoration: "none",
   borderBottom: "1px solid #e5e7eb",
   borderLeft: "5px solid #2ecc71",
-  transition: "all 0.2s ease"
+  background: "#ffffff",
+  zIndex: 1000
 }
 
 const left = {

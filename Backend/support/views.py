@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, AllowAny
 from django.utils import timezone
 from .models import SupportTicket, SiteSetting
 from .serializers import SupportTicketSerializer, SiteSettingSerializer
@@ -51,6 +51,9 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
                 f"Ticket ID: {ticket.id}\n"
                 f"Subject: {ticket.subject}\n\n"
                 f"We will respond in 24-48 hours."
+                "Warm regards,\n"
+                "The Simizi Team\n"
+                "🌐 https://simizi.net\n"
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[self.request.user.email],
@@ -70,14 +73,23 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
                 subject=f"Support Ticket Resolved - {ticket.id}",
                 message=(
                     f"Your support ticket was resolved.\n\n"
-                    f"Response:\n{ticket.admin_response}"
+                    f"Response:\n{ticket.admin_response}\n\n"
+                    "Warm regards,\n"
+                    "The Simizi Team\n"
+                    "🌐 https://simizi.net\n"
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[ticket.user.email],
                 fail_silently=False,
             )
 class SiteSettingViewSet(ViewSet):
-    permission_classes = [IsAdminUser]
+
+    def get_permissions(self):
+        # Allow anyone to GET (list)
+        if self.action == "list":
+            return [AllowAny()]
+        # Only admins can update
+        return [IsAdminUser()]
 
     def list(self, request):
         setting = SiteSetting.objects.first()

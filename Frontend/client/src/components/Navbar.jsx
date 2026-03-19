@@ -18,19 +18,18 @@ function Navbar({ onLoginClick, onSignupClick }) {
 
   const toggleMenu = () => setMenuOpen(!menuOpen)
 
+  const logoSize = isMobile ? "36px" : "72px"
+
   return (
     <nav style={navStyle}>
-      <div style={containerStyle}>
+      <div style={wrapper(isMobile)}>
 
-        {/* Left Spacer (for centering logo) */}
-        <div style={{ width: "40px" }} />
-
-        {/* Center Logo */}
+        {/* LOGO */}
         <Link to="/" style={logoStyle}>
-          <h1 style={logoText}>Simizi</h1>
+          <h1 style={{ ...logoText, fontSize: logoSize }}>simizi</h1>
         </Link>
 
-        {/* Desktop Menu */}
+        {/* DESKTOP MENU */}
         {!isMobile ? (
           <div style={desktopMenu}>
             <NavLinks
@@ -45,9 +44,10 @@ function Navbar({ onLoginClick, onSignupClick }) {
             ☰
           </div>
         )}
+
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* MOBILE DROPDOWN */}
       {isMobile && menuOpen && (
         <div style={mobileDropdown}>
           <NavLinks
@@ -91,7 +91,7 @@ function NavLinks({ user, logout, onLoginClick, onSignupClick, mobile, closeMenu
       )}
 
       {user?.is_staff && (
-        <Link to="/admin/jobs" style={adminLink} onClick={handleClick}>
+        <Link to="/admin/jobs" style={mobile ? adminLinkMobile : adminLink} onClick={handleClick}>
           Admin Panel
         </Link>
       )}
@@ -99,14 +99,14 @@ function NavLinks({ user, logout, onLoginClick, onSignupClick, mobile, closeMenu
       {!user ? (
         <>
           <button
-            style={mobile ? mobileLoginBtn : desktopLoginBtn}
+            style={mobile ? mobileBtn : desktopBtn}
             onClick={() => { onLoginClick(); handleClick() }}
           >
             Log In
           </button>
 
           <button
-            style={mobile ? mobileSignupBtn : desktopSignupBtn}
+            style={mobile ? mobilePrimaryBtn : desktopPrimaryBtn}
             onClick={() => { onSignupClick(); handleClick() }}
           >
             Sign Up
@@ -119,7 +119,7 @@ function NavLinks({ user, logout, onLoginClick, onSignupClick, mobile, closeMenu
           </span>
 
           <button
-            style={mobile ? mobileSignupBtn : desktopSignupBtn}
+            style={mobile ? mobilePrimaryBtn : desktopPrimaryBtn}
             onClick={() => { logout(); handleClick() }}
           >
             Sign Out
@@ -131,131 +131,148 @@ function NavLinks({ user, logout, onLoginClick, onSignupClick, mobile, closeMenu
 }
 
 /* ===========================
-   Styles
+   STYLES
 =========================== */
 
 const navStyle = {
-  background: "#2ecc71",
-  padding: "15px 20px",
-  position: "relative"
+  background: "#f4f4f4",
+  padding: "20px",
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  zIndex: 1000
 }
 
-const containerStyle = {
+const wrapper = (isMobile) => ({
+  width: "100%",
+  maxWidth: "1100px",
+  margin: "0 auto",
   display: "flex",
-  justifyContent: "space-between",
+  justifyContent: isMobile ? "center" : "space-between",
   alignItems: "center"
-}
+})
+
+/* LOGO */
 
 const logoStyle = {
-  textDecoration: "none",
-  color: "white",
-  textAlign: "center",
-  flex: 1
+  textDecoration: "none"
 }
 
 const logoText = {
   margin: 0,
-  fontSize: "28px",
   fontWeight: "800",
-  letterSpacing: "1px"
+  letterSpacing: "2px",
+  color: "#2ecc71",
+  textTransform: "lowercase"
 }
+
+/* DESKTOP MENU */
 
 const desktopMenu = {
   display: "flex",
-  alignItems: "center",
-  gap: "20px"
-}
-
-const hamburgerStyle = {
-  fontSize: "28px",
-  cursor: "pointer",
-  color: "white"
-}
-
-const mobileDropdown = {
-  position: "absolute",
-  right: "20px",
-  top: "75px",
-  background: "white",
-  borderRadius: "10px",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-  padding: "20px",
-  display: "flex",
-  flexDirection: "column",
   gap: "15px",
-  minWidth: "220px",
-  zIndex: 1000
+  flexWrap: "wrap"
 }
 
-/* Desktop Links */
 const desktopLink = {
-  color: "white",
+  background: "#e5e5e5",
+  padding: "10px 22px",
+  borderRadius: "12px",
   textDecoration: "none",
-  fontWeight: "500"
+  color: "#333",
+  fontWeight: "500",
+  fontSize: "15px"
 }
 
 const adminLink = {
-  background: "#27ae60",
-  color: "white",
-  padding: "6px 12px",
-  borderRadius: "5px",
-  textDecoration: "none",
+  ...desktopLink,
+  background: "#d5f5e3",
+  color: "#27ae60",
   fontWeight: "600"
+}
+
+const desktopBtn = {
+  background: "#e5e5e5",
+  padding: "10px 22px",
+  borderRadius: "12px",
+  border: "none",
+  fontSize: "15px",
+  cursor: "pointer"
+}
+
+const desktopPrimaryBtn = {
+  background: "#2ecc71",
+  padding: "10px 22px",
+  borderRadius: "12px",
+  border: "none",
+  fontSize: "15px",
+  fontWeight: "600",
+  color: "white",
+  cursor: "pointer"
 }
 
 const desktopUser = {
-  color: "white",
-  fontWeight: "600"
-}
-
-const desktopLoginBtn = {
-  padding: "8px 16px",
-  border: "1px solid white",
-  background: "transparent",
-  color: "white",
-  borderRadius: "4px",
-  cursor: "pointer"
-}
-
-const desktopSignupBtn = {
-  padding: "8px 16px",
-  border: "none",
-  background: "white",
-  color: "#2ecc71",
-  borderRadius: "4px",
-  cursor: "pointer",
-  fontWeight: "600"
-}
-
-/* Mobile Styles */
-const mobileLink = {
-  color: "#333",
-  textDecoration: "none",
+  padding: "10px 22px",
+  borderRadius: "12px",
+  background: "#e5e5e5",
   fontWeight: "500"
 }
 
-const mobileUser = {
+/* MOBILE */
+
+const hamburgerStyle = {
+  fontSize: "32px",
+  cursor: "pointer",
+  padding: "5px 10px"
+}
+
+const mobileDropdown = {
+  background: "white",
+  marginTop: "20px",
+  padding: "20px",
+  borderRadius: "12px",
+  display: "flex",
+  flexDirection: "column",
+  gap: "15px",
+  width: "90%",
+  marginLeft: "auto",
+  marginRight: "auto",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
+}
+
+const mobileLink = {
+  textDecoration: "none",
   color: "#333",
+  fontWeight: "500"
+}
+
+const adminLinkMobile = {
+  color: "#27ae60",
+  fontWeight: "600",
+  textDecoration: "none"
+}
+
+const mobileUser = {
   fontWeight: "600"
 }
 
-const mobileLoginBtn = {
+const mobileBtn = {
   padding: "10px",
   border: "1px solid #2ecc71",
   background: "transparent",
-  color: "#2ecc71",
-  borderRadius: "5px",
+  borderRadius: "8px",
   cursor: "pointer"
 }
 
-const mobileSignupBtn = {
+const mobilePrimaryBtn = {
   padding: "10px",
-  border: "none",
   background: "#2ecc71",
+  border: "none",
+  borderRadius: "8px",
   color: "white",
-  borderRadius: "5px",
-  cursor: "pointer",
-  fontWeight: "600"
+  fontWeight: "600",
+  cursor: "pointer"
 }
 
 export default Navbar

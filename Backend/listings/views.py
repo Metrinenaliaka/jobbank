@@ -4,6 +4,8 @@ from rest_framework import viewsets, permissions
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import AllowAny, IsAdminUser
+
 
 from .models import JobListing, Tag
 from .serializers import JobSmallSerializer, JobDetailSerializer, TagSerializer
@@ -83,4 +85,8 @@ class JobListingViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [permissions.IsAdminUser]
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [AllowAny()]
+        return [IsAdminUser()]

@@ -2,18 +2,24 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.utils.timezone import now
+
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        print("Incoming attrs:", attrs)
+        
 
         if not self.user.is_active:
             raise serializers.ValidationError(
                 "Email is not verified. Please verify your email before logging in."
             )
+        
+        # Update last login
+        self.user.last_login = now()
+        self.user.save(update_fields=["last_login"])
 
         # Optional: add extra user info in token response
         data.update({
@@ -67,3 +73,19 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class ResendVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "full_name",
+            "is_active",
+            "is_staff",
+            "date_joined",
+            "last_login",
+        ]
+    def get_full_name(self, obj):
+        return f"{obj.full_name}"

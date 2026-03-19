@@ -1,5 +1,4 @@
 import { createContext, useState, useEffect } from "react"
-import toast from "react-hot-toast"
 import API from "../api"
 
 export const AuthContext = createContext()
@@ -25,7 +24,7 @@ export function AuthProvider({ children }) {
       const res = await API.post("users/register/", data)
       return res
     } catch (error) {
-      toast.error("Registration failed. Please check your details.")
+      // Let UI handle messaging
       throw error
     }
   }
@@ -40,7 +39,6 @@ export function AuthProvider({ children }) {
         email,
         password
       })
-      
 
       localStorage.setItem("access", res.data.access)
       localStorage.setItem("refresh", res.data.refresh)
@@ -49,7 +47,7 @@ export function AuthProvider({ children }) {
       setUser(res.data.user)
 
     } catch (error) {
-      toast.error("Login failed. Please check your credentials.")
+      // Let UI handle messaging
       throw error
     }
   }
@@ -71,3 +69,5 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   )
 }
+
+export default AuthContext

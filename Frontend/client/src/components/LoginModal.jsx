@@ -1,6 +1,5 @@
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import { AuthContext } from "../context/AuthContext"
-import toast from "react-hot-toast"
 import API from "../api"
 
 function LoginModal({ onClose }) {
@@ -8,19 +7,32 @@ function LoginModal({ onClose }) {
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
   const [resetEmail, setResetEmail] = useState("")
 
+  const [message, setMessage] = useState("")
+  const [messageType, setMessageType] = useState("success")
+
+  useEffect(() => {
+    if (!message) return
+    const timer = setTimeout(() => {
+      setMessage("")
+    }, 10000)
+    return () => clearTimeout(timer)
+  }, [message])
+
   const handleLogin = async (e) => {
     e.preventDefault()
-    
+
     try {
       await login(email, password)
-      
-      toast.success("Login successful")
+      setMessageType("success")
+      setMessage("Login successful")
       onClose()
     } catch (err) {
-      toast.error("Invalid credentials or email not verified")
+      setMessageType("error")
+      setMessage("Invalid credentials or email not verified")
     }
   }
 
@@ -28,15 +40,17 @@ function LoginModal({ onClose }) {
     e.preventDefault()
 
     try {
-      // 🔥 CHANGE THIS ENDPOINT TO MATCH YOUR BACKEND
       await API.post("users/password-reset/", {
         email: resetEmail
       })
 
-      toast.success("Password reset link sent to your email.")
+      setMessageType("success")
+      setMessage("Password reset link sent to your email.")
       setShowForgot(false)
+
     } catch (err) {
-      toast.error("Error sending reset email.")
+      setMessageType("error")
+      setMessage("Error sending reset email.")
     }
   }
 
@@ -44,9 +58,24 @@ function LoginModal({ onClose }) {
     <div style={overlay}>
       <div style={modal}>
 
+        {message && (
+          <div
+            style={{
+              ...messageBox,
+              background: messageType === "error" ? "#fdecea" : "#e8f8f0",
+              borderColor: messageType === "error" ? "#e74c3c" : "#2ecc71"
+            }}
+          >
+            <span>{message}</span>
+            <button onClick={() => setMessage("")} style={closeMessageBtn}>
+              ×
+            </button>
+          </div>
+        )}
+
         {!showForgot ? (
           <>
-            <h2 style={title}>Welcome Back 👋</h2>
+            <h2 style={title}>Welcome Back</h2>
             <p style={subtitle}>Login to continue</p>
 
             <form onSubmit={handleLogin} style={formStyle}>
@@ -57,13 +86,23 @@ function LoginModal({ onClose }) {
                 required
               />
 
-              <input
-                style={input}
-                type="password"
-                placeholder="Password"
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
+              <div style={passwordWrapper}>
+                <input
+                  style={{ ...input, paddingRight: "45px" }}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={eyeButton}
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
 
               <div style={forgotContainer}>
                 <span
@@ -117,7 +156,26 @@ function LoginModal({ onClose }) {
   )
 }
 
-/* ===== Styles ===== */
+/* ================= SVG ICONS ================= */
+
+function EyeIcon() {
+  return (
+    <svg width="20" height="20" fill="none" stroke="#666" strokeWidth="2" viewBox="0 0 24 24">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="20" height="20" fill="none" stroke="#666" strokeWidth="2" viewBox="0 0 24 24">
+      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19C5 19 1 12 1 12a21.86 21.86 0 0 1 5.06-6.94M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 2.12-.88M1 1l22 22" />
+    </svg>
+  )
+}
+
+/* ================= STYLES ================= */
 
 const overlay = {
   position: "fixed",
@@ -126,7 +184,7 @@ const overlay = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  zIndex: 999
+  zIndex: 3000
 }
 
 const modal = {
@@ -137,15 +195,27 @@ const modal = {
   boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
 }
 
-const title = {
-  margin: 0,
-  marginBottom: "5px"
+const messageBox = {
+  padding: "10px 14px",
+  border: "1px solid",
+  borderRadius: "6px",
+  marginBottom: "15px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  fontSize: "14px"
 }
 
-const subtitle = {
-  color: "#666",
-  marginBottom: "20px"
+const closeMessageBtn = {
+  background: "transparent",
+  border: "none",
+  fontSize: "18px",
+  cursor: "pointer",
+  lineHeight: 1
 }
+
+const title = { margin: 0, marginBottom: "5px" }
+const subtitle = { color: "#666", marginBottom: "20px" }
 
 const formStyle = {
   display: "flex",
@@ -157,7 +227,24 @@ const input = {
   padding: "12px",
   border: "1px solid #ddd",
   borderRadius: "6px",
-  fontSize: "14px"
+  fontSize: "14px",
+  width: "100%",
+  boxSizing: "border-box"   // ✅ ADD THIS
+}
+
+const passwordWrapper = {
+  position: "relative",
+  width: "100%"
+}
+
+const eyeButton = {
+  position: "absolute",
+  right: "10px",
+  top: "50%",
+  transform: "translateY(-50%)",
+  background: "transparent",
+  border: "none",
+  cursor: "pointer"
 }
 
 const primaryBtn = {

@@ -1,8 +1,17 @@
 from os import path
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import RegisterView, VerifyEmailView, CustomLoginView, ResendVerificationView, RequestPasswordResetView, ConfirmPasswordResetView   
-
+from .views import (
+    RegisterView,
+    VerifyEmailView,
+    CustomLoginView,
+    ResendVerificationView,
+    RequestPasswordResetView,
+    ConfirmPasswordResetView,
+    AdminUserListView,
+    AdminUserDetailView,
+    TelegramWebhookView
+)
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('verify-email/<uuid:token>/', VerifyEmailView.as_view(), name='verify-email'),
@@ -11,6 +20,10 @@ urlpatterns = [
     path('resend-verification/', ResendVerificationView.as_view(), name='resend-verification'),
     path("password-reset/", RequestPasswordResetView.as_view(), name="request-password-reset"),
     path("password-reset-confirm/<uuid:token>/", ConfirmPasswordResetView.as_view(), name="confirm-password-reset"),
+    path("admin/users/<int:pk>/", AdminUserDetailView.as_view()),
+    path("admin/users/", AdminUserListView.as_view(), name="admin-users"),
+    path("telegram/webhook/", TelegramWebhookView.as_view()),
+
 
 ]
 

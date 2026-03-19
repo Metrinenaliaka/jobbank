@@ -1,9 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom"
+import { useEffect } from "react"
 
 function EmailVerified() {
 
   const location = useLocation()
   const navigate = useNavigate()
+  useEffect(() => {
+  document.title = "Simizi | Email Verified"
+}, [])
 
   const query = new URLSearchParams(location.search)
   const status = query.get("status")

@@ -7,6 +7,9 @@ import ApplyModal from "../components/ApplyModal"
 
 function JobDetail() {
   const { id } = useParams()
+  useEffect(() => {
+  document.title = "Simizi | Job Details"
+}, [])
 
   const [job, setJob] = useState(null)
   const [showApply, setShowApply] = useState(false)
@@ -72,27 +75,39 @@ function JobDetail() {
         </Section>
 
         <Section title="Benefits">
-          <Paragraph text={job.benefits} />
+          <div
+  dangerouslySetInnerHTML={{ __html: job.benefits }}
+/>
         </Section>
 
         <Section title="Overview">
           <Info label="Languages" value={job.languages} />
-          <Paragraph label="Education" text={job.education} />
+          <div
+  dangerouslySetInnerHTML={{ __html: job.education }}
+/>
           <Info label="Experience" value={job.experience} />
-          <Paragraph label="Work Environment" text={job.work_environment} />
+          <div
+  dangerouslySetInnerHTML={{ __html: job.work_environment }}
+/>
           <Info label="Work Setting" value={job.work_setting} />
         </Section>
 
         <Section title="Responsibilities">
-          <Paragraph text={job.responsibilities} />
+          <div
+  dangerouslySetInnerHTML={{ __html: job.responsibilities }}
+/>
         </Section>
 
         <Section title="Supervision">
-          <Paragraph text={job.supervision} />
+          <div
+  dangerouslySetInnerHTML={{ __html: job.supervision }}
+/>
         </Section>
 
         <Section title="Specialization">
-          <Paragraph text={job.specialization} />
+          <div
+  dangerouslySetInnerHTML={{ __html: job.specialization }}
+/>
         </Section>
 
       </div>

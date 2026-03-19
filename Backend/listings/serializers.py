@@ -3,13 +3,15 @@ from .models import JobListing, Tag
 
 
 class TagSerializer(serializers.ModelSerializer):
-    class Meta:
+     
+      class Meta:
         model = Tag
-        fields = ['id', 'name']
+        fields = '__all__'
 
 
 class JobSmallSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
+    
 
     class Meta:
         model = JobListing
@@ -24,6 +26,7 @@ class JobSmallSerializer(serializers.ModelSerializer):
             'work_mode',
             'created_at',
             'tags',
+            
         ]
 
 

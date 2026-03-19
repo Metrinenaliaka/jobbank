@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import toast from "react-hot-toast"
 import API from "../../api"
 
 const STATUSES = [
@@ -14,6 +13,7 @@ const STATUSES = [
 function AdminApplications() {
 
   const [applications, setApplications] = useState([])
+  const [errorMessage, setErrorMessage] = useState("")
 
   const fetchApplications = async () => {
     const res = await API.get("applications/")
@@ -29,14 +29,31 @@ function AdminApplications() {
       await API.patch(`applications/${id}/`, { status })
       fetchApplications()
     } catch (err) {
-     
-      toast.error("Failed to update status")
+      setErrorMessage("Failed to update status")
+
+      // Auto clear after 10 seconds
+      setTimeout(() => {
+        setErrorMessage("")
+      }, 10000)
     }
   }
 
   return (
     <div style={wrapper}>
       <h2>ATS Hiring Pipeline</h2>
+
+      {/* INLINE ERROR MESSAGE */}
+      {errorMessage && (
+        <div style={errorBox}>
+          <span>{errorMessage}</span>
+          <button
+            style={closeInline}
+            onClick={() => setErrorMessage("")}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div style={board}>
 
@@ -63,31 +80,31 @@ function AdminApplications() {
 
                 <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "4px" }}>
   
-  {app.cv && (
-    <a href={app.cv} target="_blank" rel="noreferrer">
-      📄 View CV
-    </a>
-  )}
+                  {app.cv && (
+                    <a href={app.cv} target="_blank" rel="noreferrer">
+                      📄 View CV
+                    </a>
+                  )}
 
-  {app.cover_letter && (
-    <a href={app.cover_letter} target="_blank" rel="noreferrer">
-      📝 View Cover Letter
-    </a>
-  )}
+                  {app.cover_letter && (
+                    <a href={app.cover_letter} target="_blank" rel="noreferrer">
+                      📝 View Cover Letter
+                    </a>
+                  )}
 
-  {app.passport_photo && (
-    <a href={app.passport_photo} target="_blank" rel="noreferrer">
-      🖼 View Passport Photo
-    </a>
-  )}
+                  {app.passport_photo && (
+                    <a href={app.passport_photo} target="_blank" rel="noreferrer">
+                      🖼 View Passport Photo
+                    </a>
+                  )}
 
-  {app.other_documents && (
-    <a href={app.other_documents} target="_blank" rel="noreferrer">
-      📎 View Other Documents
-    </a>
-  )}
+                  {app.other_documents && (
+                    <a href={app.other_documents} target="_blank" rel="noreferrer">
+                      📎 View Other Documents
+                    </a>
+                  )}
 
-</div>
+                </div>
 
                 <select
                   value={app.status}
@@ -151,6 +168,28 @@ const select = {
   marginTop: "8px",
   width: "100%",
   padding: "6px"
+}
+
+/* INLINE ERROR */
+
+const errorBox = {
+  background: "#ffe6e6",
+  color: "#c0392b",
+  padding: "10px 14px",
+  borderRadius: "6px",
+  margin: "15px 0",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  fontSize: "14px"
+}
+
+const closeInline = {
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  fontWeight: "bold",
+  fontSize: "16px"
 }
 
 export default AdminApplications

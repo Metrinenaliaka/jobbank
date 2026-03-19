@@ -23,6 +23,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = PhoneNumberField(unique=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     nationality = models.CharField(max_length=100)
+    telegram_chat_id = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True
+    )
 
     is_active = models.BooleanField(default=False)  # inactive until email verified
     is_staff = models.BooleanField(default=False)

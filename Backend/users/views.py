@@ -1,17 +1,25 @@
+from email.mime import message
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.shortcuts import redirect
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework.views import APIView
 from .models import User, EmailVerification, PasswordReset
-from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ResendVerificationSerializer
+from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ResendVerificationSerializer, AdminUserSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
+from rest_framework.permissions import IsAdminUser
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.utils.html import format_html
 from django.contrib.auth.hashers import make_password
+from users.services.telegram_service import send_telegram_message
 
 
 class CustomLoginView(TokenObtainPairView):
@@ -29,13 +37,26 @@ class RegisterView(generics.CreateAPIView):
         verification = EmailVerification.objects.create(user=user)
 
         verification_link = f"http://localhost:8000/api/users/verify-email/{verification.token}/"
+        message = f"""
+            Welcome to Simizi 🎉
+
+            Verify your account:
+            {verification_link}
+
+            Simizi Team
+            🌐 https://simizi.net\n
+             
+            """
 
         send_mail(
             subject="Verify Your Email",
-            message=f"Click to verify your email: {verification_link}",
+            message=message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
         )
+        # Send Telegram if linked
+        if user.telegram_chat_id:
+            send_telegram_message(user.telegram_chat_id, message)
 
 
 class VerifyEmailView(generics.GenericAPIView):
@@ -125,12 +146,24 @@ class RequestPasswordResetView(generics.GenericAPIView):
 
         print("Reset email being sent to:", user.email)
 
+        message = f"""
+            Reset your Simizi password
+
+            Click here:
+            {reset_link}
+
+            If you did not request this, ignore this message.
+            """
+
         send_mail(
             subject="Reset Your Password",
-            message=f"Click to reset your password: {reset_link}",
+            message=message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
         )
+
+        if user.telegram_chat_id:
+            send_telegram_message(user.telegram_chat_id, message)
 
         return Response(
             {"message": "Reset link sent."},
@@ -164,3 +197,53 @@ class ConfirmPasswordResetView(generics.GenericAPIView):
             {"message": "Password reset successful."},
             status=status.HTTP_200_OK
         )
+class AdminUserListView(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
+    permission_classes = [IsAdminUser]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+
+    filterset_fields = ["is_active", "is_staff"]
+    search_fields = ["email", "full_name"]
+    ordering_fields = ["date_joined", "last_login"]
+    ordering = ["-date_joined"]
+
+class AdminUserDetailView(RetrieveUpdateAPIView):
+
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
+    permission_classes = [IsAdminUser]
+
+class TelegramWebhookView(APIView):
+
+    permission_classes = [AllowAny]
+    
+
+    def post(self, request):
+
+        data = request.data
+        print("TELEGRAM HIT:", request.data)
+
+        if "message" not in data:
+            return Response({"status": "ignored"})
+
+        message = data["message"]
+        chat_id = message["chat"]["id"]
+
+        text = message.get("text", "")
+
+        if text.startswith("/start"):
+
+            parts = text.split(" ")
+
+            if len(parts) > 1:
+                user_id = parts[1]
+
+                user = get_object_or_404(User, id=user_id)
+
+                user.telegram_chat_id = chat_id
+                user.save()
+                send_telegram_message(chat_id, "✅ Telegram successfully connected to your Simizi account!")
+
+        return Response({"status": "ok"})

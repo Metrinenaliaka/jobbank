@@ -12,6 +12,9 @@ function Jobs() {
   const [referenceCode, setReferenceCode] = useState("")
   const [loading, setLoading] = useState(false)
   const [paymentMethods, setPaymentMethods] = useState([])
+  useEffect(() => {
+  document.title = "Simizi | Jobs"
+}, [])
 
   const navigate = useNavigate()
 
@@ -88,6 +91,24 @@ function Jobs() {
       setLoading(false)
     }
   }
+  const getTagColor = (name) => {
+  const colors = [
+    "#e3f2fd",
+    "#fce4ec",
+    "#e8f5e9",
+    "#fff3e0",
+    "#ede7f6",
+    "#f3e5f5",
+    "#e0f7fa"
+  ]
+
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+
+  return colors[Math.abs(hash) % colors.length]
+}
 
   return (
     <>
@@ -108,6 +129,22 @@ function Jobs() {
             onClick={() => navigate(`/jobs/${job.id}`)}
           >
             <h3>{job.title}</h3>
+            {job.tags && job.tags.length > 0 && (
+  <div style={tagsWrapper}>
+    {job.tags.map(tag => (
+      <span
+        key={tag.id}
+        style={{
+          ...tagStyle,
+          background: getTagColor(tag.name)
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {tag.name}
+      </span>
+    ))}
+  </div>
+)}
             <p>Employer: {job.company_name}</p>
             <p>City: {job.location_city || "None Specified"}</p>
             <p>Province/State: {job.location_province || "None Specified"}</p>
@@ -167,9 +204,9 @@ function Jobs() {
             {paymentMethods
               .filter(method => String(method.id) === paymentMethod)
               .map(method => (
-                <p key={method.id} style={paymentInfo}>
-                  {method.instructions}
-                </p>
+                <div
+    dangerouslySetInnerHTML={{ __html: method.instructions }}
+  />
               ))}
 
             <input
@@ -270,7 +307,7 @@ const modalOverlay = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  zIndex: 1000,
+  zIndex: 3000,
 }
 
 const modalBox = {
@@ -311,4 +348,18 @@ const submitBtn = {
 const paymentInfo = {
   fontSize: "14px",
   marginBottom: "10px",
+}
+const tagsWrapper = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  marginTop: "10px"
+}
+
+const tagStyle = {
+  padding: "6px 10px",
+  borderRadius: "20px",
+  fontSize: "12px",
+  fontWeight: "600",
+  color: "#333"
 }

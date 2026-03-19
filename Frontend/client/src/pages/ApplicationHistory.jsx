@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react"
 import API from "../api"
 import PaymentModal from "../components/PaymentModal"
+import {
+  FaPaypal,
+  FaCcVisa,
+  FaCcMastercard,
+  FaUniversity,
+  FaMobileAlt
+} from "react-icons/fa"
 
 const BASE_STEPS = [
   "applied",
@@ -14,6 +21,9 @@ function ApplicationHistory() {
 
   const [applications, setApplications] = useState([])
   const [selectedApp, setSelectedApp] = useState(null)
+  useEffect(() => {
+  document.title = "Simizi | Application History"
+}, [])
 
   useEffect(() => {
     fetchApplications()
@@ -28,7 +38,6 @@ function ApplicationHistory() {
     }
   }
 
-  // ✅ UPDATE ONLY ONE APPLICATION AFTER PAYMENT
   const handlePaymentSuccess = (applicationId) => {
     setApplications(prev =>
       prev.map(app =>
@@ -42,6 +51,44 @@ function ApplicationHistory() {
   return (
     <div style={wrapper}>
       <h2 style={{ marginBottom: "20px" }}>Application History</h2>
+
+      {/* ================= PAYMENT METHODS ================= */}
+      <div style={methodsWrapper}>
+        <h3 style={{ marginBottom: "15px" }}>Accepted Payment Methods</h3>
+
+        <div style={methodsGrid}>
+
+          {/* M-PESA (RECOMMENDED) */}
+          <div style={{ ...methodCard, ...recommendedCard }}>
+            <div style={badge}>RECOMMENDED</div>
+            <FaMobileAlt size={40} color="#2ecc71" />
+            <span>M-Pesa Global</span>
+          </div>
+
+          <div style={methodCard}>
+            <FaPaypal size={40} color="#0070ba" />
+            <span>PayPal</span>
+          </div>
+
+          <div style={methodCard}>
+            <FaUniversity size={40} />
+            <span>Bank / Wire</span>
+          </div>
+
+          <div style={methodCard}>
+            <FaCcVisa size={40} />
+            <span>Visa</span>
+          </div>
+
+          <div style={methodCard}>
+            <FaCcMastercard size={40} />
+            <span>Mastercard</span>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ================= APPLICATIONS ================= */}
 
       {applications.length === 0 && (
         <p>No applications yet.</p>
@@ -92,8 +139,7 @@ function ApplicationHistory() {
             <p style={muted}>{app.company_name || ""}</p>
 
             <p style={muted}>
-              Applied on{" "}
-              {new Date(app.applied_at).toLocaleDateString()}
+              Applied on {new Date(app.applied_at).toLocaleDateString()}
             </p>
 
             {/* TRACKER */}
@@ -130,7 +176,6 @@ function ApplicationHistory() {
             </div>
 
             {/* PAYMENT SECTION */}
-
             {canMakePayment && (
               <div style={paymentBox}>
                 <p style={{ fontWeight: "600", marginBottom: "10px" }}>
@@ -141,7 +186,7 @@ function ApplicationHistory() {
                   style={payBtn}
                   onClick={() => setSelectedApp(app)}
                 >
-                  Click to Pay
+                  Complete Application Payment
                 </button>
               </div>
             )}
@@ -277,5 +322,50 @@ const paidBox = {
 const rejectedBox = {
   marginTop: "15px",
   color: "red",
+  fontWeight: "600"
+}
+
+const methodsWrapper = {
+  background: "white",
+  padding: "20px",
+  marginBottom: "30px",
+  borderRadius: "10px",
+  boxShadow: "0 6px 18px rgba(0,0,0,0.05)"
+}
+
+const methodsGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+  gap: "15px"
+}
+
+const methodCard = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "18px",
+  border: "1px solid #eee",
+  borderRadius: "10px",
+  background: "#fafafa",
+  fontSize: "13px",
+  fontWeight: "500",
+  position: "relative"
+}
+
+const recommendedCard = {
+  border: "2px solid #2ecc71",
+  background: "#f4fff8"
+}
+
+const badge = {
+  position: "absolute",
+  top: "-10px",
+  right: "10px",
+  background: "#2ecc71",
+  color: "white",
+  fontSize: "10px",
+  padding: "4px 8px",
+  borderRadius: "20px",
   fontWeight: "600"
 }

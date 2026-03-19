@@ -2,6 +2,10 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import toast from "react-hot-toast"
 import API from "../../api"
+import ReactQuill from "react-quill-new"
+import "react-quill-new/dist/quill.snow.css"
+import AdminUsers from "./AdminUsers"
+import CreatableSelect from "react-select/creatable"
 
 function AdminJobs() {
 
@@ -29,6 +33,9 @@ function AdminJobs() {
     tags: [],
     is_active: true
   }
+  useEffect(() => {
+  document.title = "Simizi | Admin Panel"
+}, [])
 
   const [activeTab, setActiveTab] = useState("create")
   const [jobs, setJobs] = useState([])
@@ -246,6 +253,12 @@ function AdminJobs() {
         >
           Payment Methods
         </button>
+        <button
+  style={activeTab === "users" ? activeAdminTab : adminTab}
+  onClick={() => setActiveTab("users")}
+>
+  Users
+</button>
       </div>
 
       {/* CREATE / EDIT JOB */}
@@ -253,7 +266,14 @@ function AdminJobs() {
         <form onSubmit={handleSubmit} style={formStyle}>
 
           <h3 style={sectionTitle}>Basic Info</h3>
-          <input style={input} name="title" placeholder="Title" value={form.title} onChange={handleChange} required />
+          <input
+  style={{ ...input, textTransform: "none" }}
+  name="title"
+  placeholder="Title"
+  value={form.title}
+  onChange={handleChange}
+  required
+/>
           <input style={input} name="company_name" placeholder="Company" value={form.company_name} onChange={handleChange} required />
           <input style={input} name="location_city" placeholder="City" value={form.location_city} onChange={handleChange} required />
           <input style={input} name="location_province" placeholder="Province" value={form.location_province} onChange={handleChange} required />
@@ -279,40 +299,46 @@ function AdminJobs() {
           </select>
 
           <h3 style={sectionTitle}>Benefits</h3>
-          <textarea style={textarea} name="benefits" placeholder="Benefits" value={form.benefits} onChange={handleChange} />
+          <ReactQuill
+  theme="snow"
+  value={form.benefits}
+  onChange={(value) => setForm({ ...form, benefits: value })}
+  placeholder="List benefits, e.g. health insurance, paid time off, etc."
+/>
 
           <h3 style={sectionTitle}>Overview</h3>
           <input style={input} name="languages" placeholder="Languages" value={form.languages} onChange={handleChange} />
-          <textarea style={textarea} name="education" placeholder="Education" value={form.education} onChange={handleChange} />
+          <ReactQuill
+  theme="snow"
+  value={form.education}
+  onChange={(value) => setForm({ ...form, education: value })}
+  placeholder="Education requirements"
+/>
           <input style={input} name="experience" placeholder="Experience" value={form.experience} onChange={handleChange} />
-          <textarea style={textarea} name="work_environment" placeholder="Work Environment" value={form.work_environment} onChange={handleChange} />
+          <ReactQuill
+  theme="snow"
+  value={form.work_environment}
+  onChange={(value) => setForm({ ...form, work_environment: value })}
+  placeholder="Describe the work environment"
+/>
           <input style={input} name="work_setting" placeholder="Work Setting" value={form.work_setting} onChange={handleChange} />
 
           <h3 style={sectionTitle}>Responsibilities</h3>
-          <textarea style={textarea} name="responsibilities" placeholder="Responsibilities" value={form.responsibilities} onChange={handleChange} />
+          <ReactQuill
+  theme="snow"
+  value={form.responsibilities}
+  onChange={(value) => setForm({ ...form, responsibilities: value })}
+  placeholder="Describe the job responsibilities"
+/>
           <input style={input} name="supervision" placeholder="Supervision" value={form.supervision} onChange={handleChange} />
-          <textarea style={textarea} name="specialization" placeholder="Specialization" value={form.specialization} onChange={handleChange} />
+          <ReactQuill
+  theme="snow"
+  value={form.specialization}
+  onChange={(value) => setForm({ ...form, specialization: value })}
+  placeholder="Describe any specialization requirements"
+/>
 
-          <h3 style={sectionTitle}>Tags</h3>
-          <select
-            multiple
-            style={{ ...input, height: "120px" }}
-            value={form.tags}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                tags: Array.from(e.target.selectedOptions, o => Number(o.value))
-              })
-            }
-          >
-            {Array.isArray(tags) &&
-              tags.map(tag => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.name}
-                </option>
-              ))}
-          </select>
-
+         
           <label style={{ display: "flex", gap: "10px", alignItems: "center" }}>
             Active
             <input type="checkbox" name="is_active" checked={form.is_active} onChange={handleChange} />
@@ -392,9 +418,14 @@ function AdminJobs() {
             <input style={input} placeholder="Code"
               value={methodForm.code}
               onChange={(e) => setMethodForm({ ...methodForm, code: e.target.value })} />
-            <textarea style={textarea} placeholder="Instructions"
-              value={methodForm.instructions}
-              onChange={(e) => setMethodForm({ ...methodForm, instructions: e.target.value })} />
+            <ReactQuill
+  theme="snow"
+  value={methodForm.instructions}
+  onChange={(value) =>
+    setMethodForm({ ...methodForm, instructions: value })
+  }
+  placeholder="Payment instructions (e.g. send money, reference code, etc.)"
+/>
             <label>
               Active
               <input type="checkbox"
@@ -411,7 +442,9 @@ function AdminJobs() {
               <div>
                 <b>{method.name}</b>
                 <p>Status: {method.is_active ? "Active" : "Inactive"}</p>
-                <p>Instructions: {method.instructions}</p>
+                <div
+    dangerouslySetInnerHTML={{ __html: method.instructions }}
+  />
                 
               </div>
               <div>
@@ -424,6 +457,7 @@ function AdminJobs() {
           ))}
         </div>
       )}
+      {activeTab === "users" && <AdminUsers />}
 
     </div>
   )

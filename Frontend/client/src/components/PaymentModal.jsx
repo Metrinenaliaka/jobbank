@@ -122,9 +122,9 @@ function PaymentModal({ applicationId, jobId, onClose, onSuccess }) {
           {methods
             .filter(method => String(method.id) === selectedMethod)
             .map(method => (
-              <p key={method.id} style={paymentInfo}>
-                {method.instructions}
-              </p>
+              <div
+    dangerouslySetInnerHTML={{ __html: method.instructions }}
+  />
             ))}
 
           <input
@@ -170,7 +170,7 @@ const modalOverlay = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  zIndex: 1000,
+  zIndex: 3000,
 }
 
 const modalBox = {

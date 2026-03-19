@@ -35,26 +35,16 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 f"for {payment.get_service_type_display()}.\n\n"
                 "Our team will verify your payment shortly.\n\n"
                 "Thank you for choosing Simizi."
+                "Warm regards,\n"
+                "The Simizi Team\n"
+                "🌐 https://simizi.net\n"
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[payment.user.email],
             fail_silently=False,
         )
 
-        # ✅ Document request email
-        send_mail(
-            subject="Next Step - Submit Your Documents",
-            message=(
-                "Please reply to this email with:\n\n"
-                "- Your current resume (if any)\n"
-                "- Job description\n"
-                "- Relevant documents\n\n"
-                "Our team will begin once payment is verified."
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[payment.user.email],
-            fail_silently=False,
-        )
+     
 
     def perform_update(self, serializer):
         """
@@ -74,6 +64,9 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     "Your payment has been verified.\n"
                     "Our team will now begin working on your request.\n\n"
                     "Thank you for choosing Simizi."
+                    "Warm regards,\n"
+                    "The Simizi Team\n"
+                    "🌐 https://simizi.net\n"
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[payment.user.email],
