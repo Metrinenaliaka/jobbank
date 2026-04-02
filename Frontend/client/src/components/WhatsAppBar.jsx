@@ -12,7 +12,7 @@ function WhatsAppBar() {
       try {
         const res = await API.get("site-settings/")
         setSettings(res.data)
-        console.log("WhatsApp settings:", res.data)
+        
       } catch (err) {
         console.error("Failed to load site settings")
       }

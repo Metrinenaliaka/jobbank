@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import API from "../api"
 
-function PaymentModal({ applicationId, jobId, onClose, onSuccess }) {
+function PaymentModal({ applicationId, jobId, stageId, serviceType, onClose, onSuccess }) {
 
   const [methods, setMethods] = useState([])
   const [selectedMethod, setSelectedMethod] = useState("")
@@ -24,6 +24,22 @@ function PaymentModal({ applicationId, jobId, onClose, onSuccess }) {
       setMessageType("error")
     }
   }
+  const config = {
+  application_fee: {
+    title: "Application Processing Payment",
+    amount: "350 CAD"
+  },
+  lmia_fee: {
+    title: "LMIA Processing Payment",
+    amount: "815 CAD"
+  },
+  visa_fee: {
+    title: "Visa Processing Payment",
+    amount: "1105 CAD"
+  }
+}
+
+const current = config[serviceType] || config.application_fee
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -43,10 +59,15 @@ function PaymentModal({ applicationId, jobId, onClose, onSuccess }) {
       await API.post("payments/", {
         job: jobId,
         application: applicationId,
-        service_type: "application_fee",
+        service_type: serviceType,
         payment_method: Number(selectedMethod),
         reference_code: reference,
       })
+
+  //     if (serviceType === "lmia_fee") {
+  // await API.patch(`visa-stage/${stageId}/update/`, {
+  //   lmia_payment_status: "paid"
+  // })}
 
       // 🔥 UPDATE ONLY THAT APPLICATION IN PARENT
       onSuccess(applicationId)
@@ -81,8 +102,8 @@ function PaymentModal({ applicationId, jobId, onClose, onSuccess }) {
     <div style={modalOverlay}>
       <div style={modalBox}>
 
-        <h2>Application Processing Payment</h2>
-        <h3>Make a Payment Equivalent to 350 CAD</h3>
+        <h2>{current.title}</h2>
+        <h3>Make a Payment Equivalent to {current.amount}</h3>
 
         {message && (
           <div

@@ -1,12 +1,15 @@
+from requests import Response
+
 from rest_framework import viewsets, permissions
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import Application
 from payments.models import Payment, PaymentMethod
 from django.utils import timezone
-
-
 from .serializers import ApplicationSerializer
+from visa.models import VisaApplication, VisaStage
+
+
 
 
 class ApplicationViewSet(viewsets.ModelViewSet):
@@ -118,16 +121,59 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         # APPLICATION STATUS CHANGE
         # =========================
         if old_status != application.status:
+            if application.status == "accepted":
+
+                visa, created = VisaApplication.objects.get_or_create(
+                    application=application
+                )
+
+                if created:
+                    stages = [
+                        ("job_offer", "Job Offer Letter"),
+                        ("work_permit", "Work Permit Application"),
+                        ("ielts", "IELTS Test"),
+                        ("medical", "Medical Examination"),
+                        ("biometrics", "Biometrics"),
+                        ("lmia", "LMIA Approval"),
+                        ("visa_processing", "Visa Processing"),
+                        ("decision", "Decision Made"),
+                    ]
+
+                    for index, (key, label) in enumerate(stages):
+                        VisaStage.objects.create(
+                            visa_application=visa,
+                            key=key,
+                            name=label,
+                            order=index
+                        )
+            message = f"""
+Dear {application.applicant.full_name},
+
+We are pleased to inform you that your application has been successfully processed, and the hiring company has issued your Job Offer Letter.
+
+📌 Action Required
+• Log in to your account:
+  https://www.simizi.net  
+• Access your dashboard  
+• Download your Job Offer Letter  
+• Review and sign the document  
+• Upload or return the signed copy  
+
+⏳ Deadline  
+Kindly submit the signed letter within 3 days to avoid delays or cancellation of your application.
+
+Once received, we will proceed with your Work Permit Application.
+
+If you need assistance, please contact our support team.
+
+Kind regards,  
+Simizi Support Team  
+https://www.simizi.net
+"""
+                    
             send_mail(
-                subject="Application Status Updated",
-                message=(
-                    f"Dear {application.applicant.full_name},\n\n"
-                    f"Your application for {application.job.title} has been updated.\n\n"
-                    f"New Status: {application.status.capitalize()}\n\n"
-                    "Warm regards,\n"
-                    "The Simizi Team\n"
-                    "🌐 https://simizi.net\n"
-                ),
+                subject="Job Offer Letter Issued – Action Required",
+                message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[application.applicant.email],
                 fail_silently=False,

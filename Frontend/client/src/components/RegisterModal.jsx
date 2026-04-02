@@ -112,6 +112,7 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
           <>
             <h2 style={title}>Verify Your Email</h2>
 
+
             <div style={successBox}>
 
               <p style={{ marginBottom: "10px" }}>
@@ -122,23 +123,7 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
                 Waiting for you to verify...
               </p>
 
-              <div style={{ marginTop: "20px" }}>
-
-                <p style={{ fontSize: "14px", marginBottom: "10px" }}>
-                  Want faster notifications?
-                </p>
-
-                <a
-                  href={`https://t.me/SimiziBot?start=${successData.userId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={telegramBtn}
-                >
-                  Connect Telegram
-                </a>
-
-              </div>
-
+             
             </div>
 
             <button style={primaryBtn} onClick={onClose}>

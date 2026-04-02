@@ -4,6 +4,10 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import User
 import requests
+from users.services.telegram_service import notify_admins_new_user
+
+
+
 
 
 def send_telegram(chat_id, message):
@@ -23,6 +27,12 @@ def send_telegram(chat_id, message):
         requests.post(url, json=data, timeout=5)
     except Exception as e:
         print("Telegram notification failed:", e)
+
+@receiver(post_save, sender=User)
+def user_created_signal(sender, instance, created, **kwargs):
+
+    if created:
+        notify_admins_new_user(instance)
 
 
 @receiver(post_save, sender=User)

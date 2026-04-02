@@ -48,20 +48,21 @@ class PaymentSerializer(serializers.ModelSerializer):
         service_type = attrs.get("service_type")
         application = attrs.get("application")
 
-        if service_type == "application_fee" and application:
-
+        if application:
             existing_payment = Payment.objects.filter(
                 user=user,
                 application=application,
-                service_type="application_fee"
+                service_type=service_type
             ).exclude(status="rejected").first()
 
             if existing_payment:
                 raise serializers.ValidationError(
-                    "A payment for this application already exists."
+                    f"A {service_type.replace('_', ' ')} payment already exists."
                 )
 
         return attrs
+
+        
 
     def get_user_full_name(self, obj):
         return obj.user.full_name if obj.user else None

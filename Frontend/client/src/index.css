@@ -31,7 +31,14 @@ body {
   color: #222;
   background: #f8f9fb;
 }
-
+@keyframes shimmer {
+  0% { left: -50%; }
+  100% { left: 100%; }
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 h1 {
   font-size: 3.2em;

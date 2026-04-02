@@ -76,6 +76,7 @@ class ResendVerificationSerializer(serializers.Serializer):
 
 class AdminUserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
+    telegram_chat_id = serializers.CharField(read_only=True)
     class Meta:
         model = User
         fields = [
@@ -86,6 +87,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
             "is_staff",
             "date_joined",
             "last_login",
+            "telegram_chat_id",
         ]
     def get_full_name(self, obj):
         return f"{obj.full_name}"

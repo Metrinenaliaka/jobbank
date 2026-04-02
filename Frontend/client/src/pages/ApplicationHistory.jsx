@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import API from "../api"
+import { useNavigate } from "react-router-dom"
 import PaymentModal from "../components/PaymentModal"
 import {
   FaPaypal,
@@ -20,6 +21,7 @@ const BASE_STEPS = [
 function ApplicationHistory() {
 
   const [applications, setApplications] = useState([])
+   const navigate = useNavigate()
   const [selectedApp, setSelectedApp] = useState(null)
   useEffect(() => {
   document.title = "Simizi | Application History"
@@ -174,6 +176,21 @@ function ApplicationHistory() {
                 )
               })}
             </div>
+            {/* ✅ VISA TRACKER ENTRY */}
+{app.status === "accepted" && (
+  <div style={visaBox}>
+    <p style={{ fontWeight: "600", marginBottom: "10px" }}>
+      Your application has been accepted 🎉
+    </p>
+
+    <button
+      style={visaBtn}
+      onClick={() => navigate(`/visa-tracker/${app.id}`)}
+    >
+      Proceed to Next Step
+    </button>
+  </div>
+)}
 
             {/* PAYMENT SECTION */}
             {canMakePayment && (
@@ -368,4 +385,20 @@ const badge = {
   padding: "4px 8px",
   borderRadius: "20px",
   fontWeight: "600"
+}
+const visaBox = {
+  marginTop: "20px",
+  padding: "15px",
+  background: "#eafaf1",
+  borderRadius: "8px",
+  border: "1px solid #2ecc71"
+}
+
+const visaBtn = {
+  background: "#27ae60",
+  color: "white",
+  border: "none",
+  padding: "10px 18px",
+  borderRadius: "6px",
+  cursor: "pointer"
 }

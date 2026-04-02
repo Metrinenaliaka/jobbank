@@ -5,6 +5,8 @@ import API from "../../api"
 import ReactQuill from "react-quill-new"
 import "react-quill-new/dist/quill.snow.css"
 import AdminUsers from "./AdminUsers"
+import AdminVisa from "./AdminVisa"
+
 import CreatableSelect from "react-select/creatable"
 
 function AdminJobs() {
@@ -246,6 +248,12 @@ function AdminJobs() {
         >
           Payments
         </button>
+        <button
+  style={activeTab === "visa" ? activeAdminTab : adminTab}
+  onClick={() => setActiveTab("visa")}
+>
+  Visa Tracker
+</button>
 
         <button
           style={activeTab === "methods" ? activeAdminTab : adminTab}
@@ -457,6 +465,8 @@ function AdminJobs() {
           ))}
         </div>
       )}
+     
+{activeTab === "visa" && <AdminVisa />}
       {activeTab === "users" && <AdminUsers />}
 
     </div>

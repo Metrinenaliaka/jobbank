@@ -19,6 +19,8 @@ class Payment(models.Model):
         ("resume", "Resume Writing"),
         ("cover_letter", "Cover Letter Writing"),
         ("application_fee", "Application Processing Fee"),
+        ("lmia_fee", "LMIA Processing Fee"),        # ✅ ADD
+        ("visa_fee", "Visa Processing Fee"),
     )
 
     STATUS_CHOICES = (

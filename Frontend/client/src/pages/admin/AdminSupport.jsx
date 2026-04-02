@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import API from "../../api"
+import { useContext } from "react"
+import { AuthContext } from "../../context/AuthContext"
 
 function AdminSupport() {
 
   const [activeTab, setActiveTab] = useState("chat")
+  const { user } = useContext(AuthContext)
 
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [successData, setSuccessData] = useState(null)
 
   const [settings, setSettings] = useState({
     whatsapp_link: "",
@@ -45,6 +49,7 @@ function AdminSupport() {
     fetchTickets()
     fetchSettings()
   }, [])
+  
 
   // =========================
   // UPDATE TICKET
@@ -79,6 +84,28 @@ function AdminSupport() {
     <div style={wrapper}>
 
       <h2>Support Management</h2>
+    <div style={telegramContainer}>
+
+  <div style={telegramHeader}>
+    <h3 style={{ margin: 0 }}>Telegram Notifications</h3>
+    <span style={telegramStatus(user)}>
+      {user?.telegram_chat_id ? "Connected ✅" : "Not Connected ❌"}
+    </span>
+  </div>
+
+  {!user?.telegram_chat_id && (
+    <a
+      href={`https://t.me/SimizBot?start=${user?.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={telegramBtn}
+    >
+      Connect Telegram
+    </a>
+  )}
+
+</div>
+
 
       {/* =========================
           TABS
@@ -187,6 +214,7 @@ function AdminSupport() {
             <button style={saveBtn} onClick={handleSettingsSave}>
               Save Settings
             </button>
+            
           </div>
         </>
       )}
@@ -271,5 +299,36 @@ const select = {
   padding: "6px",
   width: "100%"
 }
+const telegramBtn = {
+  display: "inline-block",
+  background: "#0088cc",
+  color: "white",
+  padding: "10px 14px",
+  borderRadius: "6px",
+  textDecoration: "none",
+  fontWeight: "600"
+}
+const telegramContainer = {
+  marginTop: "30px",
+  marginBottom: "20px",
+  padding: "16px",
+  background: "#f9fafb",
+  border: "1px solid #eee",
+  borderRadius: "10px"
+}
+
+const telegramHeader = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "12px"
+}
+
+const telegramStatus = (user) => ({
+  fontSize: "13px",
+  fontWeight: "600",
+  color: user?.telegram_chat_id ? "#27ae60" : "#e74c3c"
+})
+
 
 export default AdminSupport

@@ -1,64 +1,174 @@
+import { useState } from "react"
 function Resources() {
+  const [showModal, setShowModal] = useState(false)
+  const [activeModal, setActiveModal] = useState(null)
   return (
-    <section style={sectionStyle}>
-      <div style={container}>
-        <p style={introText}>
-          From the latest job news to resume tips and tricks,
-          keep up to date with the latest information.
-        </p>
+  <section style={sectionStyle}>
+    <div style={container}>
+      <p style={introText}>
+        From the latest job news to resume tips and tricks,
+        keep up to date with the latest information.
+      </p>
 
-        <div style={grid}>
-          <ResourceCard
-            icon={<CircleSplitIcon />}
-            title="Canadian Immigration & Citizenship News"
-            text="Get the latest Canadian Immigration News"
-          />
+      <div style={grid}>
+        <ResourceCard
+          icon={<CircleSplitIcon />}
+          title="Canadian Immigration & Citizenship News"
+          text="Get the latest Canadian Immigration News"
+          onClick={() => setActiveModal("immigration")}
+        />
 
-          <ResourceCard
-            icon={<DiamondIcon />}
-            title="Living Insights"
-            text="Find out what it's like living in a specific Canadian city"
-          />
+        <ResourceCard
+          icon={<DiamondIcon />}
+          title="Living Insights"
+          text="Find out what it's like living in a specific Canadian city"
+          onClick={() => setActiveModal("living")}
+        />
 
-          <ResourceCard
-            icon={<GridIcon />}
-            title="Resume Writing"
-            text="Learn how to write an effective resume"
-          />
+        <ResourceCard
+          icon={<GridIcon />}
+          title="Resume Writing"
+          text="Learn how to write an effective resume"
+          onClick={() => window.location.href = "/jobs"}
+        />
 
-          <ResourceCard
-            icon={<ChartIcon />}
-            title="Language Skills"
-            text="Master language skills for the Canadian workforce"
-          />
+        <ResourceCard
+          icon={<ChartIcon />}
+          title="Language Skills"
+          text="Master language skills for the Canadian workforce"
+        />
 
-          <ResourceCard
-            icon={<WaveIcon />}
-            title="Salary Outlook"
-            text="Set your expectations for salary and cost of living in Canada"
-          />
+        <ResourceCard
+          icon={<WaveIcon />}
+          title="Salary Outlook"
+          text="Set your expectations for salary and cost of living in Canada"
+        />
 
-          <ResourceCard
-            icon={<ClusterIcon />}
-            title="Taxes & Finances"
-            text="Navigate taxation and financial management in Canada"
-          />
+        <ResourceCard
+          icon={<ClusterIcon />}
+          title="Taxes & Finances"
+          text="Navigate taxation and financial management in Canada"
+          link="https://www.canada.ca/en/services/taxes.html"
+        />
+      </div>
+    </div>
+
+    {/* ✅ MODAL STARTS HERE */}
+    {activeModal && (
+      <div style={modalOverlay} onClick={() => setActiveModal(null)}>
+        <div style={modal} onClick={(e) => e.stopPropagation()}>
+
+          {activeModal === "living" && (
+            <>
+              <h2>Living Insights</h2>
+
+              <p style={{ whiteSpace: "pre-line", lineHeight: "1.6" }}>
+{`Overview
+
+Living Insights provides you with real-life guidance on what to expect when you move to Canada for work. This section helps you prepare beyond the job by giving you a clear understanding of daily life, cost of living, housing, transportation, culture, and weather conditions.
+
+What you will find here
+
+• Cost of living breakdown (rent, food, transport, utilities)
+• Accommodation options and how to secure housing
+• Transportation systems (buses, trains, driving rules)
+• Weather and seasonal preparation (winter, summer, clothing)
+• Workplace culture and expectations in Canada
+• Basic laws, rights, and responsibilities for workers
+• Banking, taxes, and managing your finances
+• Healthcare system and insurance information
+• Tips for settling in as a newcomer`}
+              </p>
+               <div style={modalActions}>
+              <a
+      href="https://www.canada.ca/en/services/immigration-citizenship/newcomers.html"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={modalLink}
+    >
+      Learn More About Living in Canada →
+    </a>
+    <button style={closeBtn} onClick={() => setActiveModal(null)}>
+            Close
+          </button>
+        </div>
+            </>
+          )}
+
+          {activeModal === "immigration" && (
+            <>
+              <h2>🇨🇦 Canadian Immigration & Citizenship News</h2>
+
+              <p style={{ whiteSpace: "pre-line", lineHeight: "1.6" }}>
+{`Overview
+
+At Simizi, we keep you updated with the latest immigration and citizenship changes in Canada. This section provides important updates that may affect your job application, visa process, or permanent residency plans.
+
+Immigration rules and requirements can change at any time. That is why Simizi simplifies and brings you the most relevant updates in one place.
+
+What You Will Find Here
+
+• New immigration rules and policy changes
+• Updates on work permits, study permits, and visas
+• Express Entry and Permanent Residency updates
+• Citizenship announcements
+• Processing time changes
+
+Why This Is Important
+
+• Avoid delays or mistakes
+• Prepare correct documents
+• Act early on opportunities
+• Plan with confidence`}
+              </p>
+
+    <div style={modalActions}>
+              
+              <a
+     href="https://www.canada.ca/en/immigration-refugees-citizenship/news.html"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={modalLink}
+    >
+      View Latest Immigration Updates →
+    </a>
+     <button style={closeBtn} onClick={() => setActiveModal(null)}>
+            Close
+          </button>
+        </div>
+            </>
+          )}
+
+         
+
         </div>
       </div>
-    </section>
-  )
+    )}
+    {/* ✅ MODAL ENDS HERE */}
+
+  </section>
+)
 }
 
-function ResourceCard({ icon, title, text }) {
+function ResourceCard({ icon, title, text, link, onClick }) {
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick()
+    } else if (link) {
+      window.open(link, "_blank")
+    }
+  }
+
   return (
-    <div style={card}>
+    <div style={card} onClick={handleClick}>
       <div style={iconWrapper}>{icon}</div>
       <h3 style={cardTitle}>{title}</h3>
       <p style={cardText}>{text}</p>
     </div>
   )
+  
 }
-
 /* ---------------- ICONS ---------------- */
 
 const green = "#2ecc71"
@@ -148,6 +258,13 @@ const container = {
   padding: "0 20px",
   textAlign: "center"
 }
+const modalActions = {
+  marginTop: "25px",
+  display: "flex",
+  justifyContent: "space-between", // 👈 pushes them apart
+  alignItems: "center",
+  gap: "20px" // 👈 extra safety spacing
+}
 
 const introText = {
   fontSize: "18px",
@@ -168,7 +285,8 @@ const card = {
   padding: "40px 30px",
   borderRadius: "25px",
   textAlign: "center",
-  transition: "0.3s ease"
+  transition: "0.3s ease",
+  cursor: "pointer"   // ✅ important
 }
 
 const iconWrapper = {
@@ -185,6 +303,42 @@ const cardTitle = {
 const cardText = {
   fontSize: "14px",
   color: "#4a5568"
+}
+const modalOverlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,0.6)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 1000
+}
+
+const modal = {
+  background: "white",
+  padding: "30px",
+  borderRadius: "12px",
+  maxWidth: "600px",
+  maxHeight: "80vh",
+  overflowY: "auto",
+  textAlign: "left"
+}
+
+const modalLink = {
+  display: "inline-block",
+  marginTop: "20px",
+  color: "#2ecc71",
+  fontWeight: "600",
+  textDecoration: "underline"
+}
+const closeBtn = {
+  marginTop: "20px",
+  padding: "10px 15px",
+  border: "none",
+  background: "#2ecc71",
+  color: "white",
+  borderRadius: "6px",
+  cursor: "pointer"
 }
 
 export default Resources

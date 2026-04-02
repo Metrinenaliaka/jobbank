@@ -3,6 +3,7 @@ from django.conf import settings
 from listings.models import JobListing
 
 
+
 class Application(models.Model):
 
     STATUS_CHOICES = [

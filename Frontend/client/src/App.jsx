@@ -19,6 +19,9 @@ import RegisterModal from "./components/RegisterModal"
 import AdminSupport from "./pages/admin/AdminSupport"
 import AdminLayout from "./pages/admin/AdminLayout"
 import Resources from "./pages/Resources"
+import VisaTracker from "./pages/VisaTracker"
+
+
 
 function App() {
 
@@ -42,6 +45,7 @@ function App() {
     <Route path="/jobs/:id" element={<JobDetail />} />
     <Route path="/applications" element={<ApplicationHistory />} />
     <Route path="/resources" element={<Resources />} />
+    <Route path="/visa-tracker/:applicationId" element={<VisaTracker />} />
     <Route path="/reset-password/:token" element={<ResetPassword />} />
     <Route path="/email-verified" element={<EmailVerified />} />
 

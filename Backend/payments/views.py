@@ -57,6 +57,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         # Only trigger when status changes to verified
         if old_status != payment.status and payment.status == "verified":
+            # 🔥 LMIA PAYMENT → UPDATE STAGE
+            if payment.service_type == "lmia_fee" and payment.application:
+                visa = payment.application.visa
+                stage = visa.stages.filter(key="lmia").first()
+
+                if stage:
+                    stage.lmia_payment_status = "paid"
+                    stage.save()
             send_mail(
                 subject="Payment Verified - Simizi",
                 message=(

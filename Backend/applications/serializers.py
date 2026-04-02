@@ -73,3 +73,4 @@ class ApplicationSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+
