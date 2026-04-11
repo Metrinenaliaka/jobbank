@@ -1,6 +1,7 @@
 import { useState, useContext } from "react"
 import API from "../api"
 import { AuthContext } from "../context/AuthContext"
+import { MessageCircleMore } from "lucide-react"
 
 function SupportChat() {
 
@@ -47,7 +48,13 @@ function SupportChat() {
     <>
       {/* FLOATING BUTTON */}
       <button style={floatingBtn} onClick={() => setOpen(!open)}>
-        💬
+        <MessageCircleMore
+  size={46}
+  strokeWidth={2.2}
+  style={{
+    filter: "drop-shadow(0 0 6px rgba(255,255,255,0.6))"
+  }}
+/>
       </button>
 
       {/* CHAT POPUP */}
@@ -114,7 +121,32 @@ function SupportChat() {
               required
             />
 
-            <button style={sendBtn} disabled={loading}>
+            <button
+  style={sendBtn}
+  disabled={loading}
+  onMouseEnter={e => {
+    e.currentTarget.style.transform = "translateY(-2px) scale(1.03)"
+    e.currentTarget.style.boxShadow = `
+      0 20px 40px rgba(34,197,94,0.45),
+      0 0 50px rgba(34,197,94,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.7)
+    `
+  }}
+  onMouseLeave={e => {
+    e.currentTarget.style.transform = "translateY(0) scale(1)"
+    e.currentTarget.style.boxShadow = `
+      0 10px 25px rgba(34,197,94,0.35),
+      0 0 30px rgba(34,197,94,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.6)
+    `
+  }}
+  onMouseDown={e => {
+    e.currentTarget.style.transform = "scale(0.95)"
+  }}
+  onMouseUp={e => {
+    e.currentTarget.style.transform = "translateY(-2px) scale(1.03)"
+  }}
+>
               {loading ? "Sending..." : "Send"}
             </button>
           </form>
@@ -125,35 +157,53 @@ function SupportChat() {
 }
 
 /* ================= STYLES ================= */
-
 const floatingBtn = {
   position: "fixed",
-  bottom: "20px",
-  right: "20px",
-  width: "55px",
-  height: "55px",
+  bottom: "16px",
+  right: "16px",
+  width: "64px",
+  height: "64px",
   borderRadius: "50%",
   border: "none",
-  background: "#25D366",
-  color: "white",
-  fontSize: "24px",
   cursor: "pointer",
-  zIndex: 3000,
-  boxShadow: "0 6px 20px rgba(0,0,0,0.2)"
-}
 
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+
+  background: "linear-gradient(135deg, #22c55e, #15803d)",
+  color: "white",
+
+  boxShadow: `
+    0 12px 35px rgba(34,197,94,0.45),
+    0 0 45px rgba(34,197,94,0.35),
+    inset 0 2px 4px rgba(255,255,255,0.5)
+  `,
+
+  transition: "all 0.25s ease",
+  zIndex: 3000
+}
 const chatBox = {
   position: "fixed",
-  bottom: "85px",
-  right: "20px",
-  width: "320px",
-  background: "white",
-  padding: "15px",
-  borderRadius: "12px",
-  boxShadow: "0 8px 25px rgba(0,0,0,0.25)",
+  bottom: "80px",
+  right: "10px",
+  left: "10px",              // 🔥 THIS fixes overflow
+  maxWidth: "400px",
+  margin: "0 auto",
+
+  background: "rgba(255,255,255,0.9)",
+  backdropFilter: "blur(16px)",
+
+  borderRadius: "16px",
+  padding: "16px",
+
+  boxShadow: `
+  0 25px 60px rgba(0,0,0,0.25),
+  0 0 40px rgba(34,197,94,0.08),
+  inset 0 1px 0 rgba(255,255,255,0.6)
+`,
   zIndex: 4000
 }
-
 const chatHeader = {
   display: "flex",
   justifyContent: "space-between",
@@ -171,9 +221,12 @@ const closeBtn = {
 }
 
 const input = {
-  padding: "10px",
-  border: "1px solid #ddd",
-  borderRadius: "6px"
+  padding: "12px",
+  border: "1px solid rgba(0,0,0,0.1)",
+  borderRadius: "8px",
+  fontSize: "14px",
+  background: "rgba(255,255,255,0.9)", // 🔥 force light
+  color: "#111"
 }
 
 const textarea = {
@@ -183,13 +236,20 @@ const textarea = {
 }
 
 const sendBtn = {
-  background: "#2ecc71",
+  background: "linear-gradient(135deg, #22c55e, #16a34a)",
   color: "white",
   border: "none",
-  padding: "10px",
-  borderRadius: "6px",
+  padding: "12px",
+  borderRadius: "10px",
   cursor: "pointer",
-  fontWeight: "600"
+  fontWeight: "600",
+  transition: "all 0.25s ease",
+
+  boxShadow: `
+    0 10px 25px rgba(34,197,94,0.35),   /* base depth */
+    0 0 30px rgba(34,197,94,0.25),      /* glow */
+    inset 0 1px 0 rgba(255,255,255,0.6) /* light reflection */
+  `
 }
 
 const successBox = {

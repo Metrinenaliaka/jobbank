@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import API from "../api"
 import { useNavigate } from "react-router-dom"
+import { SlidersHorizontal } from "lucide-react"
 import PaymentModal from "../components/PaymentModal"
 import {
   FaPaypal,
@@ -15,14 +16,30 @@ const BASE_STEPS = [
   "reviewed",
   "assessment",
   "interview",
-  "accepted"
+  "accepted",
+  "declined"
 ]
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  return isMobile
+}
 
 function ApplicationHistory() {
 
   const [applications, setApplications] = useState([])
    const navigate = useNavigate()
+   const isMobile = useIsMobile()
   const [selectedApp, setSelectedApp] = useState(null)
+  const [activeFilter, setActiveFilter] = useState("all")
+  const FILTERS = ["all", ...BASE_STEPS]
   useEffect(() => {
   document.title = "Simizi | Application History"
 }, [])
@@ -49,46 +66,60 @@ function ApplicationHistory() {
       )
     )
   }
+  const getCounts = () => {
+  const counts = { all: applications.length }
+
+  BASE_STEPS.forEach(step => {
+    counts[step] = applications.filter(app => app.status === step).length
+  })
+
+  return counts
+}
+
+const counts = getCounts()
+  const filteredApplications =
+  activeFilter === "all"
+    ? applications
+    : applications.filter(app => app.status === activeFilter)
 
   return (
-    <div style={wrapper}>
-      <h2 style={{ marginBottom: "20px" }}>Application History</h2>
+    
+    <div style={wrapper(isMobile)}>
+      <div style={bgGlow} />
+      <div style={headerRow}>
+  <h2 style={{ marginBottom: "10px" }}>Application History</h2>
 
-      {/* ================= PAYMENT METHODS ================= */}
-      <div style={methodsWrapper}>
-        <h3 style={{ marginBottom: "15px" }}>Accepted Payment Methods</h3>
+  <button style={filterIconBtn}>
+    <SlidersHorizontal size={18} />
+    {!isMobile && <span style={{ marginLeft: "6px" }}>Filter</span>}
+  </button>
+</div>
+      <div style={filterWrapper(isMobile)}>
+  {FILTERS.map(filter => {
+  const isActive = activeFilter === filter
 
-        <div style={methodsGrid}>
+  return (
+    <button
+      key={filter}
+      onClick={() => setActiveFilter(filter)}
+      style={{
+        ...filterBtn(isMobile),
+        background: isActive
+          ? "linear-gradient(135deg, #22c55e, #16a34a)"
+          : "rgba(255,255,255,0.6)",
+        color: isActive ? "#fff" : "#333",
+        boxShadow: isActive
+          ? "0 6px 20px rgba(34,197,94,0.4)"
+          : "none"
+      }}
+    >
+      {filter.replace("_", " ")} ({counts[filter] || 0})
+    </button>
+  )
+})}
+</div>
 
-          {/* M-PESA (RECOMMENDED) */}
-          <div style={{ ...methodCard, ...recommendedCard }}>
-            <div style={badge}>RECOMMENDED</div>
-            <FaMobileAlt size={40} color="#2ecc71" />
-            <span>M-Pesa Global</span>
-          </div>
-
-          <div style={methodCard}>
-            <FaPaypal size={40} color="#0070ba" />
-            <span>PayPal</span>
-          </div>
-
-          <div style={methodCard}>
-            <FaUniversity size={40} />
-            <span>Bank / Wire</span>
-          </div>
-
-          <div style={methodCard}>
-            <FaCcVisa size={40} />
-            <span>Visa</span>
-          </div>
-
-          <div style={methodCard}>
-            <FaCcMastercard size={40} />
-            <span>Mastercard</span>
-          </div>
-
-        </div>
-      </div>
+      
 
       {/* ================= APPLICATIONS ================= */}
 
@@ -96,7 +127,7 @@ function ApplicationHistory() {
         <p>No applications yet.</p>
       )}
 
-      {applications.map(app => {
+      {filteredApplications.map(app => {
 
         const paymentStatus = app.latest_payment_status || "not_paid"
 
@@ -109,6 +140,13 @@ function ApplicationHistory() {
         const isRejected = paymentStatus === "rejected"
 
         let steps = [...BASE_STEPS]
+        if (app.status === "accepted") {
+  steps = steps.filter(step => step !== "declined")
+}
+
+if (app.status === "declined") {
+  steps = steps.filter(step => step !== "accepted")
+}
 
         if (app.status === "applied") {
           steps = [
@@ -120,6 +158,7 @@ function ApplicationHistory() {
             "accepted"
           ]
         }
+        
 
         let trackerStep = app.status
 
@@ -132,7 +171,25 @@ function ApplicationHistory() {
         const currentIndex = steps.indexOf(trackerStep)
 
         return (
-          <div key={app.id} style={card}>
+          <div key={app.id} style={card(isMobile)}
+          onMouseEnter={e => {
+  e.currentTarget.style.transform = "translateY(-6px) scale(1.01)"
+  e.currentTarget.style.boxShadow = `
+    0 25px 70px rgba(34,197,94,0.18),
+    0 0 80px rgba(34,197,94,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.8)
+  `
+}}
+onMouseLeave={e => {
+  e.currentTarget.style.transform = "translateY(0) scale(1)"
+  e.currentTarget.style.boxShadow = `
+    0 10px 40px rgba(34,197,94,0.12),
+    0 0 60px rgba(34,197,94,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.7)
+  `
+}}
+>
+            <div style={sparkle} />
 
             <h3 style={{ marginBottom: "6px" }}>
               {app.job_title || "Job Application"}
@@ -145,36 +202,60 @@ function ApplicationHistory() {
             </p>
 
             {/* TRACKER */}
-            <div style={trackerContainer}>
+            <div style={trackerContainer(isMobile)}>
               {steps.map((step, index) => {
+  const active = index <= currentIndex
 
-                const active = index <= currentIndex
+  const isDeclined = step === "declined"
+  const isAccepted = step === "accepted"
 
-                return (
-                  <div key={step} style={stepWrapper}>
+  let bgColor = "#ddd"
 
-                    {index !== 0 && (
-                      <div
-                        style={{
-                          ...line,
-                          background: active ? "#2ecc71" : "#ddd"
-                        }}
-                      />
-                    )}
+  if (isDeclined && trackerStep === "declined") {
+    bgColor = "#ef4444"
+  } else if (isAccepted && trackerStep === "accepted") {
+    bgColor = "#22c55e"
+  } else if (active) {
+    bgColor = "#2ecc71"
+  }
 
-                    <div
-                      style={{
-                        ...circle,
-                        background: active ? "#2ecc71" : "#ddd"
-                      }}
-                    />
+  return (
+    <div key={step} style={stepWrapper(isMobile)}>
 
-                    <span style={label}>
-                      {step.replace("_", " ")}
-                    </span>
-                  </div>
-                )
-              })}
+      {index !== 0 && (
+        <div
+          style={{
+            ...line,
+            background: active ? "#2ecc71" : "#ddd"
+          }}
+        />
+      )}
+
+      <div
+        style={{
+          ...circle,
+          background: bgColor
+        }}
+      />
+
+      <span
+        style={{
+          ...label(isMobile),
+          color:
+            trackerStep === "declined" && step === "declined"
+              ? "#ef4444"
+              : trackerStep === "accepted" && step === "accepted"
+              ? "#22c55e"
+              : active
+              ? "#2ecc71"
+              : "#999"
+        }}
+      >
+        {step.replace("_", " ")}
+      </span>
+    </div>
+  )
+})}
             </div>
             {/* ✅ VISA TRACKER ENTRY */}
 {app.status === "accepted" && (
@@ -186,6 +267,23 @@ function ApplicationHistory() {
     <button
       style={visaBtn}
       onClick={() => navigate(`/visa-tracker/${app.id}`)}
+      onMouseEnter={e => {
+  e.currentTarget.style.transform = "translateY(-3px) scale(1.03)"
+  e.currentTarget.style.boxShadow = "0 20px 50px rgba(34,197,94,0.5)"
+}}
+
+onMouseLeave={e => {
+  e.currentTarget.style.transform = "translateY(0) scale(1)"
+  e.currentTarget.style.boxShadow = "0 10px 30px rgba(34,197,94,0.4)"
+}}
+
+onMouseDown={e => {
+  e.currentTarget.style.transform = "scale(0.96)"
+}}
+
+onMouseUp={e => {
+  e.currentTarget.style.transform = "translateY(-3px) scale(1.03)"
+}}
     >
       Proceed to Next Step
     </button>
@@ -200,8 +298,25 @@ function ApplicationHistory() {
                 </p>
 
                 <button
-                  style={payBtn}
+                  style={payBtn(isMobile)}
                   onClick={() => setSelectedApp(app)}
+                  onMouseEnter={e => {
+  e.currentTarget.style.transform = "translateY(-3px) scale(1.03)"
+  e.currentTarget.style.boxShadow = "0 20px 50px rgba(34,197,94,0.5)"
+}}
+
+onMouseLeave={e => {
+  e.currentTarget.style.transform = "translateY(0) scale(1)"
+  e.currentTarget.style.boxShadow = "0 10px 30px rgba(34,197,94,0.4)"
+}}
+
+onMouseDown={e => {
+  e.currentTarget.style.transform = "scale(0.96)"
+}}
+
+onMouseUp={e => {
+  e.currentTarget.style.transform = "translateY(-3px) scale(1.03)"
+}}
                 >
                   Complete Application Payment
                 </button>
@@ -239,6 +354,41 @@ function ApplicationHistory() {
           onClose={() => setSelectedApp(null)}
         />
       )}
+       {/* ================= PAYMENT METHODS ================= */}
+      <div style={methodsWrapper}>
+        <h3 style={{ marginBottom: "15px" }}>Accepted Payment Methods</h3>
+
+        <div style={methodsGrid}>
+
+          {/* M-PESA (RECOMMENDED) */}
+          <div style={{ ...methodCard, ...recommendedCard }}>
+            <div style={badge}>RECOMMENDED</div>
+            <FaMobileAlt size={40} color="#2ecc71" />
+            <span>M-Pesa Global</span>
+          </div>
+
+          <div style={methodCard}>
+            <FaPaypal size={40} color="#0070ba" />
+            <span>PayPal</span>
+          </div>
+
+          <div style={methodCard}>
+            <FaUniversity size={40} />
+            <span>Bank / Wire</span>
+          </div>
+
+          <div style={methodCard}>
+            <FaCcVisa size={40} />
+            <span>Visa</span>
+          </div>
+
+          <div style={methodCard}>
+            <FaCcMastercard size={40} />
+            <span>Mastercard</span>
+          </div>
+
+        </div>
+      </div>
 
     </div>
   )
@@ -248,47 +398,123 @@ export default ApplicationHistory
 
 /* ================= STYLES ================= */
 
-const wrapper = {
+
+const wrapper = (isMobile) => ({
   maxWidth: "950px",
-  margin: "40px auto"
-}
+  margin: isMobile ? "30px auto" : "60px auto",
+  padding: isMobile ? "0 12px" : "0 16px",
+  position: "relative"
+})
+const card = (isMobile) => ({
+  padding: isMobile ? "16px" : "22px",
+  marginBottom: isMobile ? "14px" : "18px",
+  borderRadius: "16px",
+  position: "relative",
+overflow: "hidden",
+  background: "rgba(255,255,255,0.12)",
+  backdropFilter: isMobile ? "blur(16px)" : "blur(24px)", // 🔥 lighter on mobile
 
-const card = {
-  background: "white",
-  padding: "22px",
-  marginBottom: "18px",
+  border: "1px solid rgba(255,255,255,0.5)",
+  transition: "all 0.3s ease",
+
+  boxShadow: isMobile
+    ? "0 8px 25px rgba(34,197,94,0.08)"
+    : `
+      0 20px 60px rgba(34,197,94,0.12),
+  0 0 80px rgba(34,197,94,0.08),
+  inset 0 1px 0 rgba(255,255,255,0.7)
+    `
+})
+const headerRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "10px"
+}
+const filterIconBtn = {
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  padding: "8px 12px",
   borderRadius: "10px",
-  boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+  border: "1px solid rgba(255,255,255,0.5)",
+  background: "rgba(255,255,255,0.6)",
+  color: "#333",
+  backdropFilter: "blur(10px)",
+  cursor: "pointer",
+  fontSize: "13px",
+  fontWeight: "500"
 }
-
+const filterWrapper = (isMobile) => ({
+  display: "flex",
+  gap: "10px",
+  marginBottom: "20px",
+  overflowX: "auto", // 🔥 key for mobile
+  paddingBottom: "6px"
+})
+const filterBtn = (isMobile) => ({
+  border: "none",
+  padding: isMobile ? "8px 14px" : "10px 18px",
+  borderRadius: "20px",
+  fontSize: isMobile ? "12px" : "13px",
+  fontWeight: "500",
+  cursor: "pointer",
+  whiteSpace: "nowrap", // 🔥 prevents breaking
+  transition: "all 0.2s ease",
+  backdropFilter: "blur(10px)"
+})
 const muted = {
-  color: "#666",
+  color: "rgba(0,0,0,0.7)",
   margin: "3px 0"
 }
 
-const trackerContainer = {
+const trackerContainer = (isMobile) => ({
   display: "flex",
   marginTop: "20px",
   width: "100%",
+  
   alignItems: "center",
   overflowX: "auto",
   paddingBottom: "10px"
+})
+const sparkle = {
+  position: "absolute",
+  inset: 0,
+  
+  pointerEvents: "none",
+  background: `
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.4) 1px, transparent 2px),
+    radial-gradient(circle at 70% 60%, rgba(255,255,255,0.3) 1px, transparent 2px),
+    radial-gradient(circle at 40% 80%, rgba(255,255,255,0.2) 1px, transparent 2px)
+  `,
+  opacity: 0.4
 }
 
-const stepWrapper = {
+const stepWrapper = (isMobile) => ( {
   flex: 1,
   position: "relative",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  minWidth: "100px"
-}
+  
+  minWidth: isMobile ? "70px" : "100px",
+} )
 
 const circle = {
   width: "20px",
   height: "20px",
   borderRadius: "50%",
   zIndex: 2
+}
+const bgGlow = {
+  position: "absolute",
+  top: "-150px",
+  left: "-150px",
+  width: "500px",
+  height: "500px",
+  background: "radial-gradient(circle, rgba(34,197,94,0.6), transparent 70%)",
+  filter: "blur(100px)",
+  zIndex: 0
 }
 
 const line = {
@@ -300,30 +526,34 @@ const line = {
   zIndex: 1
 }
 
-const label = {
+const label = (isMobile) => ({
   marginTop: "8px",
-  fontSize: "13px",
-  textTransform: "capitalize",
+  fontSize: isMobile ? "11px" : "13px",
   color: "#333",
   textAlign: "center"
-}
+})
 
 const paymentBox = {
   marginTop: "20px",
   padding: "15px",
-  background: "#fff8e1",
-  borderRadius: "8px"
+  
+  borderRadius: "8px",
+  background: "rgba(255,255,255,0.2)",
+border: "1px solid rgba(255,255,255,0.4)"
 }
 
-const payBtn = {
-  background: "#2ecc71",
+const payBtn = (isMobile) => ({
+  width: isMobile ? "100%" : "auto", // 🔥 full width on mobile
+  padding: isMobile ? "12px" : "10px 18px",
+  fontSize: isMobile ? "14px" : "13px",
+  borderRadius: "10px",
+  background: "linear-gradient(135deg, #22c55e, #16a34a)",
   color: "white",
   border: "none",
-  padding: "10px 18px",
-  borderRadius: "6px",
-  cursor: "pointer"
-}
-
+  cursor: "pointer",
+  transition: "all 0.2s ease",
+  boxShadow: "0 10px 30px rgba(34,197,94,0.3)"
+})
 const pendingBox = {
   marginTop: "15px",
   color: "#f39c12",
@@ -343,17 +573,19 @@ const rejectedBox = {
 }
 
 const methodsWrapper = {
-  background: "white",
+  background: "rgba(255,255,255,0.7)",
   padding: "20px",
   marginBottom: "30px",
-  borderRadius: "10px",
-  boxShadow: "0 6px 18px rgba(0,0,0,0.05)"
+  borderRadius: "14px",
+  backdropFilter: "blur(12px)",
+  border: "1px solid rgba(255,255,255,0.4)",
+  boxShadow: "0 8px 30px rgba(0,0,0,0.05)"
 }
 
 const methodsGrid = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-  gap: "15px"
+  gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", // 🔥 smaller
+  gap: "12px"
 }
 
 const methodCard = {
@@ -362,9 +594,9 @@ const methodCard = {
   alignItems: "center",
   justifyContent: "center",
   padding: "18px",
-  border: "1px solid #eee",
+  border: "1px solid rgba(255,255,255,0.4)",
   borderRadius: "10px",
-  background: "#fafafa",
+  background: "rgba(255,255,255,0.6)",
   fontSize: "13px",
   fontWeight: "500",
   position: "relative"
@@ -386,6 +618,15 @@ const badge = {
   borderRadius: "20px",
   fontWeight: "600"
 }
+const shimmer = {
+  position: "absolute",
+  top: 0,
+  left: "-50%",
+  width: "50%",
+  height: "100%",
+  background: "linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent)",
+  animation: "shimmerGlow 6s infinite"
+}
 const visaBox = {
   marginTop: "20px",
   padding: "15px",
@@ -400,5 +641,9 @@ const visaBtn = {
   border: "none",
   padding: "10px 18px",
   borderRadius: "6px",
-  cursor: "pointer"
+  cursor: "pointer",
+  boxShadow: `
+  0 10px 30px rgba(34,197,94,0.4),
+  0 0 40px rgba(34,197,94,0.25)
+`
 }

@@ -8,7 +8,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework.views import APIView
 from .models import User, EmailVerification, PasswordReset
-from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ResendVerificationSerializer, AdminUserSerializer
+from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ResendVerificationSerializer, AdminUserSerializer, UserProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.exceptions import ValidationError
@@ -20,6 +20,31 @@ from django.http import HttpResponse
 from django.utils.html import format_html
 from django.contrib.auth.hashers import make_password
 from users.services.telegram_service import send_telegram_message
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import RetrieveUpdateAPIView
+
+class MeUpdateView(RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def me(request):
+    user = request.user
+    return Response({
+        "id": user.id,
+        "email": user.email,
+        "is_staff": user.is_staff,
+        "full_name": user.full_name,
+        "nationality": user.nationality,
+        "phone_number": str(user.phone_number) if user.phone_number else "",
+        "languages": user.languages,
+    })
 
 
 class CustomLoginView(TokenObtainPairView):
@@ -247,3 +272,20 @@ class TelegramWebhookView(APIView):
                 send_telegram_message(chat_id, "✅ Telegram successfully connected to your Simizi account!")
 
         return Response({"status": "ok"})
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+
+        if not user.check_password(old_password):
+            return Response({"error": "Wrong password"}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({"message": "Password updated"})

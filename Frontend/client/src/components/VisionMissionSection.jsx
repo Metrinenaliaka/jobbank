@@ -30,7 +30,7 @@ function VisionMissionSection() {
 
 const sectionStyle = {
   padding: "100px 20px",
-  backgroundColor: "#f8fafc",
+  backgroundColor: "#transparent",
 }
 
 const containerStyle = {

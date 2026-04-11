@@ -13,6 +13,13 @@ function LoginModal({ onClose }) {
 
   const [message, setMessage] = useState("")
   const [messageType, setMessageType] = useState("success")
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth < 768)
+  window.addEventListener("resize", handleResize)
+  return () => window.removeEventListener("resize", handleResize)
+}, [])
 
   useEffect(() => {
     if (!message) return
@@ -56,7 +63,7 @@ function LoginModal({ onClose }) {
 
   return (
     <div style={overlay}>
-      <div style={modal}>
+      <div style={modal(isMobile)}>
 
         {message && (
           <div
@@ -80,6 +87,14 @@ function LoginModal({ onClose }) {
 
             <form onSubmit={handleLogin} style={formStyle}>
               <input
+              onFocus={(e) => {
+  e.target.style.border = "1px solid #22c55e"
+  e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.15)"
+}}
+onBlur={(e) => {
+  e.target.style.border = "1px solid rgba(0,0,0,0.1)"
+  e.target.style.boxShadow = "none"
+}}
                 style={input}
                 placeholder="Email"
                 onChange={e => setEmail(e.target.value)}
@@ -88,6 +103,14 @@ function LoginModal({ onClose }) {
 
               <div style={passwordWrapper}>
                 <input
+                onFocus={(e) => {
+  e.target.style.border = "1px solid #22c55e"
+  e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.15)"
+}}
+onBlur={(e) => {
+  e.target.style.border = "1px solid rgba(0,0,0,0.1)"
+  e.target.style.boxShadow = "none"
+}}
                   style={{ ...input, paddingRight: "45px" }}
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
@@ -113,7 +136,15 @@ function LoginModal({ onClose }) {
                 </span>
               </div>
 
-              <button style={primaryBtn} type="submit">
+              <button style={primaryBtn} type="submit"
+              onMouseEnter={(e) => {
+  e.currentTarget.style.transform = "translateY(-2px)"
+  e.currentTarget.style.boxShadow = "0 15px 35px rgba(34,197,94,0.4)"
+}}
+onMouseLeave={(e) => {
+  e.currentTarget.style.transform = "translateY(0)"
+  e.currentTarget.style.boxShadow = "0 10px 25px rgba(34,197,94,0.3)"
+}}>
                 Log In
               </button>
             </form>
@@ -125,6 +156,14 @@ function LoginModal({ onClose }) {
 
             <form onSubmit={handlePasswordReset} style={formStyle}>
               <input
+              onFocus={(e) => {
+  e.target.style.border = "1px solid #22c55e"
+  e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.15)"
+}}
+onBlur={(e) => {
+  e.target.style.border = "1px solid rgba(0,0,0,0.1)"
+  e.target.style.boxShadow = "none"
+}}
                 style={input}
                 placeholder="Email"
                 onChange={e => setResetEmail(e.target.value)}
@@ -180,21 +219,30 @@ function EyeOffIcon() {
 const overlay = {
   position: "fixed",
   inset: 0,
-  background: "rgba(0,0,0,0.45)",
+  background: "rgba(15, 23, 42, 0.35)",
+  backdropFilter: "blur(6px)", // 🔥 key upgrade
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   zIndex: 3000
 }
 
-const modal = {
-  background: "white",
-  width: "360px",
-  padding: "30px",
-  borderRadius: "12px",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
-}
+const modal = (isMobile) => ({
+  background: "rgba(255,255,255,0.75)",
+  backdropFilter: "blur(18px)",
 
+  width: "360px",
+  maxWidth: "92%",
+
+  padding: isMobile ? "20px 16px" : "28px",
+
+  borderRadius: "18px",
+  border: "1px solid rgba(255,255,255,0.4)",
+
+  boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+
+  color: "#1f2937"
+})
 const messageBox = {
   padding: "10px 14px",
   border: "1px solid",
@@ -214,8 +262,19 @@ const closeMessageBtn = {
   lineHeight: 1
 }
 
-const title = { margin: 0, marginBottom: "5px" }
-const subtitle = { color: "#666", marginBottom: "20px" }
+const title = {
+  margin: 0,
+  marginBottom: "6px",
+  fontSize: "20px",
+  fontWeight: "700",
+  color: "#065f46"
+}
+
+const subtitle = {
+  color: "rgba(15,23,42,0.7)",
+  marginBottom: "18px",
+  fontSize: "14px"
+}
 
 const formStyle = {
   display: "flex",
@@ -225,11 +284,14 @@ const formStyle = {
 
 const input = {
   padding: "12px",
-  border: "1px solid #ddd",
-  borderRadius: "6px",
+  border: "1px solid rgba(0,0,0,0.1)",
+  borderRadius: "10px",
   fontSize: "14px",
   width: "100%",
-  boxSizing: "border-box"   // ✅ ADD THIS
+  boxSizing: "border-box",
+  color: "#080808",
+  background: "rgba(255,255,255,0.7)",
+  transition: "all 0.2s ease"
 }
 
 const passwordWrapper = {
@@ -248,13 +310,17 @@ const eyeButton = {
 }
 
 const primaryBtn = {
-  background: "#2ecc71",
+  background: "linear-gradient(135deg, #22c55e, #16a34a)",
   color: "white",
   border: "none",
   padding: "12px",
-  borderRadius: "6px",
+  borderRadius: "10px",
   cursor: "pointer",
-  fontWeight: "600"
+  fontWeight: "600",
+
+  transition: "all 0.2s ease",
+
+  boxShadow: "0 10px 25px rgba(34,197,94,0.3)"
 }
 
 const forgotContainer = {
@@ -272,9 +338,13 @@ const closeBtn = {
   marginTop: "10px",
   width: "100%",
   padding: "10px",
-  border: "none",
-  background: "#f5f5f5",
-  borderRadius: "6px",
+
+  borderRadius: "10px",
+  border: "1px solid rgba(0,0,0,0.1)",
+
+  background: "rgba(0,0,0,0.05)",
+  color: "#374151",
+
   cursor: "pointer"
 }
 

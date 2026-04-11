@@ -5,20 +5,47 @@ export const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user")
-    const access = localStorage.getItem("access")
+    const initAuth = async () => {
+      const access = localStorage.getItem("access")
+      const savedUser = localStorage.getItem("user")
 
-    if (savedUser && access) {
-      setUser(JSON.parse(savedUser))
+      // 1. Fast restore (instant UI)
+      if (savedUser) {
+        setUser(JSON.parse(savedUser))
+      }
+
+      // 2. No token → done
+      if (!access) {
+        setLoading(false)
+        return
+      }
+
+      // 3. Validate with backend (silent refresh handled by interceptor)
+      try {
+        const res = await API.get("users/me/")
+        setUser(res.data)
+        localStorage.setItem("user", JSON.stringify(res.data))
+      } catch (err) {
+        console.warn("Auth validation failed")
+
+        // ONLY logout if refresh also failed
+        const stillHasToken = localStorage.getItem("access")
+
+        if (!stillHasToken) {
+          localStorage.removeItem("user")
+          setUser(null)
+        }
+      }
+
+      setLoading(false)
     }
+
+    initAuth()
   }, [])
-
-  /* =========================
-     REGISTER
-  ========================= */
-
+  
   const register = async (data) => {
     try {
       const res = await API.post("users/register/", data)
@@ -29,32 +56,20 @@ export function AuthProvider({ children }) {
     }
   }
 
-  /* =========================
-     LOGIN
-  ========================= */
+
+  /* ================= LOGIN ================= */
 
   const login = async (email, password) => {
-    try {
-      const res = await API.post("users/login/", {
-        email,
-        password
-      })
+    const res = await API.post("users/login/", { email, password })
 
-      localStorage.setItem("access", res.data.access)
-      localStorage.setItem("refresh", res.data.refresh)
-      localStorage.setItem("user", JSON.stringify(res.data.user))
+    localStorage.setItem("access", res.data.access)
+    localStorage.setItem("refresh", res.data.refresh)
+    localStorage.setItem("user", JSON.stringify(res.data.user))
 
-      setUser(res.data.user)
-
-    } catch (error) {
-      // Let UI handle messaging
-      throw error
-    }
+    setUser(res.data.user)
   }
 
-  /* =========================
-     LOGOUT
-  ========================= */
+  /* ================= LOGOUT ================= */
 
   const logout = () => {
     localStorage.removeItem("access")
@@ -64,10 +79,8 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   )
 }
-
-export default AuthContext

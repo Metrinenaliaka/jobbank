@@ -21,6 +21,7 @@ class Payment(models.Model):
         ("application_fee", "Application Processing Fee"),
         ("lmia_fee", "LMIA Processing Fee"),        # ✅ ADD
         ("visa_fee", "Visa Processing Fee"),
+        ("upgrade", "Upgrade to Premium")
     )
 
     STATUS_CHOICES = (

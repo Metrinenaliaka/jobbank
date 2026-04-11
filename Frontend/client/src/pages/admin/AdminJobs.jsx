@@ -39,7 +39,9 @@ function AdminJobs() {
   document.title = "Simizi | Admin Panel"
 }, [])
 
-  const [activeTab, setActiveTab] = useState("create")
+  const [activeTab, setActiveTab] = useState(() => {
+  return localStorage.getItem("adminActiveTab") || "create"
+})
   const [jobs, setJobs] = useState([])
   const [payments, setPayments] = useState([])
   const [methods, setMethods] = useState([])
@@ -47,6 +49,9 @@ function AdminJobs() {
   const [editingId, setEditingId] = useState(null)
   const [editingMethodId, setEditingMethodId] = useState(null)
   const [form, setForm] = useState(emptyForm)
+  const [paymentSearchInput, setPaymentSearchInput] = useState("")
+const [paymentSearch, setPaymentSearch] = useState("")
+const [paymentActions, setPaymentActions] = useState({})
 
   const [methodForm, setMethodForm] = useState({
     name: "",
@@ -209,15 +214,48 @@ function AdminJobs() {
   }
 
   const updatePaymentStatus = async (id, status) => {
-    try {
-      await API.patch(`payments/${id}/`, { status })
-      toast.success(`Payment ${status}`)
-      fetchPayments()
-    } catch {
-      toast.error("Failed to update payment.")
-    }
-  }
+  try {
+    // 🔥 set local loading
+    setPaymentActions(prev => ({
+      ...prev,
+      [id]: { loading: true }
+    }))
 
+    await API.patch(`payments/${id}/`, { status })
+
+    // 🔥 instant UI update
+    setPayments(prev =>
+      prev.map(p =>
+        p.id === id ? { ...p, status } : p
+      )
+    )
+
+    setPaymentActions(prev => ({
+      ...prev,
+      [id]: { loading: false, status }
+    }))
+
+    toast.success(`Payment ${status}`)
+  } catch {
+    toast.error("Failed to update payment.")
+    setPaymentActions(prev => ({
+      ...prev,
+      [id]: { loading: false }
+    }))
+  }
+}
+useEffect(() => {
+  localStorage.setItem("adminActiveTab", activeTab)
+}, [activeTab])
+
+const filteredPayments = payments.filter(p =>
+  p.user_full_name?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
+  p.user_email?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
+  p.job_title?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
+  p.reference_code?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
+  p.status?.toLowerCase().includes(paymentSearch.toLowerCase()) ||
+  p.payment_method_name?.toLowerCase().includes(paymentSearch.toLowerCase())
+)
   /* ================= RENDER ================= */
 
   return (
@@ -247,6 +285,7 @@ function AdminJobs() {
           onClick={() => { setActiveTab("payments"); fetchPayments() }}
         >
           Payments
+          
         </button>
         <button
   style={activeTab === "visa" ? activeAdminTab : adminTab}
@@ -380,40 +419,118 @@ function AdminJobs() {
 
       {/* PAYMENTS */}
       {activeTab === "payments" && (
-        <div style={{ marginTop: "20px" }}>
-          {payments.length === 0 && <p>No payments found.</p>}
-          {payments.map(payment => (
-            <div key={payment.id} style={card}>
-              <div>
-                <b>{payment.service_type}</b>
-                <p>User: {payment.user_full_name}</p>
-                <p>Email: {payment.user_email}</p>
+  <div style={{ marginTop: "20px" }}>
+
+    {/* 🔍 SEARCH BAR */}
+    <div style={{ display: "flex", gap: "8px", marginBottom: "15px" }}>
+      <input
+        type="text"
+        placeholder="Search payments..."
+        value={paymentSearchInput}
+        onChange={(e) => setPaymentSearchInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            setPaymentSearch(paymentSearchInput)
+          }
+        }}
+        style={{
+          flex: 1,
+          padding: "8px",
+          borderRadius: "6px",
+          border: "1px solid #ddd"
+        }}
+      />
+
+      <button
+        onClick={() => setPaymentSearch(paymentSearchInput)}
+        style={{
+          padding: "8px 12px",
+          background: "#3498db",
+          color: "white",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer"
+        }}
+      >
+        Search
+      </button>
+
+      <button
+        onClick={() => {
+          setPaymentSearch("")
+          setPaymentSearchInput("")
+        }}
+        style={{
+          padding: "8px 12px",
+          background: "#e74c3c",
+          color: "white",
+          border: "none",
+          borderRadius: "6px",
+          cursor: "pointer"
+        }}
+      >
+        Clear
+      </button>
+    </div>
+
+    {/* EMPTY STATE */}
+    {filteredPayments.length === 0 && (
+      <p style={{ color: "#999" }}>No matching payments found.</p>
+    )}
+
+    {/* PAYMENTS LIST */}
+    {filteredPayments.map(payment => (
+      <div key={payment.id} style={card}>
+        <div>
+          <b>{payment.service_type}</b>
+          <p>User: {payment.user_full_name}</p>
+          <p>Email: {payment.user_email}</p>
           <p>Job: {payment.job_title || "N/A"}</p>
-          <p style={{ margin: "4px 0" }}>
-            Method: {payment.payment_method_name}
-          </p>
-          <p style={{ margin: "4px 0" }}>
-            Reference: {payment.reference_code}
-          </p>
-                <p>Status: {payment.status}</p>
-                 <p style={{ fontSize: "12px", color: "#777" }}>
+          <p>Method: {payment.payment_method_name}</p>
+          <p>Reference: {payment.reference_code}</p>
+          <p>Status: {payment.status}</p>
+          <p style={{ fontSize: "12px", color: "#777" }}>
             {new Date(payment.created_at).toLocaleString()}
           </p>
-              </div>
-              {payment.status === "pending" && (
-                <div>
-                  <button onClick={() => updatePaymentStatus(payment.id, "verified")}>
-                    Verify
-                  </button>
-                  <button onClick={() => updatePaymentStatus(payment.id, "rejected")} style={{ marginLeft: 8 }}>
-                    Reject
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
         </div>
-      )}
+
+       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+
+  {/* VERIFIED STATE */}
+  {(payment.status === "verified" || paymentActions[payment.id]?.status === "verified") && (
+    <span style={styles.verifiedBadge}>✔ Verified</span>
+  )}
+
+  {/* REJECTED STATE */}
+  {(payment.status === "rejected" || paymentActions[payment.id]?.status === "rejected") && (
+    <span style={styles.rejectedBadge}>✖ Rejected</span>
+  )}
+
+  {/* ACTION BUTTONS */}
+  {payment.status === "pending" && (
+    <>
+      <button
+        style={styles.verifyBtn}
+        disabled={paymentActions[payment.id]?.loading}
+        onClick={() => updatePaymentStatus(payment.id, "verified")}
+      >
+        {paymentActions[payment.id]?.loading ? "..." : "Verify"}
+      </button>
+
+      <button
+        style={styles.rejectBtn}
+        disabled={paymentActions[payment.id]?.loading}
+        onClick={() => updatePaymentStatus(payment.id, "rejected")}
+      >
+        {paymentActions[payment.id]?.loading ? "..." : "Reject"}
+      </button>
+    </>
+  )}
+</div>
+      </div>
+    ))}
+  </div>
+)}
 
       {/* PAYMENT METHODS */}
       {activeTab === "methods" && (
@@ -485,4 +602,43 @@ const sectionTitle = { marginTop: "20px", marginBottom: "5px", color: "#2ecc71" 
 const saveBtn = { background: "#2ecc71", color: "white", border: "none", padding: "12px", borderRadius: "6px", cursor: "pointer" }
 const card = { display: "flex", justifyContent: "space-between", padding: "15px", border: "1px solid #ddd", marginBottom: "10px", borderRadius: "6px" }
 
+const styles = {
+  verifyBtn: {
+    padding: "6px 12px",
+    background: "#2ecc71",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "500"
+  },
+
+  rejectBtn: {
+    padding: "6px 12px",
+    background: "#e74c3c",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "500"
+  },
+
+  verifiedBadge: {
+    padding: "6px 10px",
+    background: "#e8f8f5",
+    color: "#27ae60",
+    borderRadius: "6px",
+    fontSize: "12px",
+    fontWeight: "600"
+  },
+
+  rejectedBadge: {
+    padding: "6px 10px",
+    background: "#fdecea",
+    color: "#e74c3c",
+    borderRadius: "6px",
+    fontSize: "12px",
+    fontWeight: "600"
+  }
+}
 export default AdminJobs

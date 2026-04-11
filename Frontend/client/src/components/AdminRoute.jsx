@@ -3,10 +3,12 @@ import { Navigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 
 function AdminRoute({ children }) {
-  const { user } = useContext(AuthContext)
+  const { user, loading } = useContext(AuthContext)
+
+  if (loading) return null
 
   if (!user || !user.is_staff) {
-    return <Navigate to="/" />
+    return <Navigate to="/" replace />
   }
 
   return children

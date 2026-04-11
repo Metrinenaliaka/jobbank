@@ -26,7 +26,7 @@ function SupportStoryboardSection({ onReviewClick }) {
 
 const sectionStyle = {
   padding: "110px 20px",
-  backgroundColor: "#d1fae5",
+  backgroundColor: "transparent",
 }
 
 const containerStyle = {

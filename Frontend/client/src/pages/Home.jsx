@@ -58,10 +58,10 @@ function Home() {
       {/* HOW IT WORKS */}
       <StepsSection />
 
-     <HomeSectionCarousel
+     {/* <HomeSectionCarousel
   onPrimaryAction={handlePrimaryAction}
   onOpenSupportChat={handleOpenSupportChat}
-/>
+/> */}
       {/* FINAL CTA */}
       <CTASection openRegister={handlePrimaryAction} />
 

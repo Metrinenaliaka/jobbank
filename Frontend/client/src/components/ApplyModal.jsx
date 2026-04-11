@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import API from "../api"
 
@@ -14,6 +14,16 @@ function ApplyModal({ jobId, onClose }) {
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
   const [showPaymentPopup, setShowPaymentPopup] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsMobile(window.innerWidth < 768)
+  }
+
+  window.addEventListener("resize", handleResize)
+  return () => window.removeEventListener("resize", handleResize)
+}, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -77,10 +87,17 @@ function ApplyModal({ jobId, onClose }) {
     <>
       {/* MAIN APPLY MODAL */}
       <div style={overlay}>
-        <div style={modal}>
+        <div style={modal(isMobile)}>
 
           <div style={header}>
-            <h2 style={{ margin: 0 }}>Apply for Job</h2>
+            <h2 style={{
+  margin: 0,
+  fontSize: "20px",
+  fontWeight: "700",
+  color: "#065f46"
+}}>
+  Apply for Job
+</h2>
             <p style={subtitle}>
               Upload the required documents below. Large files will not be accepted.
             </p>
@@ -122,10 +139,10 @@ function ApplyModal({ jobId, onClose }) {
               <p style={errorStyle}>{errorMessage}</p>
             )}
 
-            <div style={buttonRow}>
+            <div style={buttonRow(isMobile)}>
               <button
                 type="button"
-                style={cancelBtn}
+                style={cancelBtn(isMobile)}
                 onClick={onClose}
                 disabled={loading}
               >
@@ -135,10 +152,17 @@ function ApplyModal({ jobId, onClose }) {
               <button
                 type="submit"
                 style={{
-                  ...submitBtn,
+                  ...submitBtn(isMobile),
                   opacity: loading ? 0.7 : 1,
                   cursor: loading ? "not-allowed" : "pointer"
                 }}
+                onMouseEnter={e => {
+  e.currentTarget.style.transform = "translateY(-2px)"
+  e.currentTarget.style.boxShadow = "0 15px 35px rgba(99,102,241,0.5)"
+}}
+onMouseLeave={e => {
+  e.currentTarget.style.transform = "translateY(0)"
+}}
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Application"}
@@ -161,7 +185,7 @@ function ApplyModal({ jobId, onClose }) {
 
             <button
               onClick={handlePaymentContinue}
-              style={submitBtn}
+              style={submitBtn(isMobile)}
             >
               Continue to Application History
             </button>
@@ -186,6 +210,14 @@ function FileInput({ label, accept, onChange, file, required }) {
           onChange={onChange}
           required={required}
           style={{ display: "none" }}
+          onMouseEnter={e => {
+    e.currentTarget.style.background = "rgba(99,102,241,0.15)"
+    e.currentTarget.style.border = "1px dashed #6366F1"
+  }}
+  onMouseLeave={e => {
+    e.currentTarget.style.background = "rgba(255,255,255,0.05)"
+    e.currentTarget.style.border = "1px dashed rgba(255,255,255,0.25)"
+  }}
         />
         {file ? file.name : "Click to upload file"}
       </label>
@@ -198,38 +230,57 @@ function FileInput({ label, accept, onChange, file, required }) {
 const overlay = {
   position: "fixed",
   inset: 0,
-  background: "rgba(0,0,0,0.5)",
+  background: "rgba(15, 23, 42, 0.35)", // softer dark blur
+  backdropFilter: "blur(6px)", // darker, richer
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   zIndex: 2000,
-  backdropFilter: "blur(3px)"
+  
+  animation: "fadeIn 0.3s ease"
 }
+const modal = (isMobile) => ({
+  background: "rgba(255,255,255,0.75)",
+  backdropFilter: "blur(18px)",
 
-const modal = {
-  background: "#fff",
-  padding: "30px",
-  borderRadius: "14px",
-  width: "500px",
+  padding: isMobile ? "20px 16px" : "28px",
+  borderRadius: "18px",
+
+  width: "520px",
   maxWidth: "95%",
-  boxShadow: "0 10px 40px rgba(0,0,0,0.15)"
-}
 
+  boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+  border: "1px solid rgba(255,255,255,0.4)",
+
+  color: "#1f2937",
+  animation: "slideUp 0.3s ease"
+})
 const popupModal = {
-  background: "#fff",
-  padding: "30px",
-  borderRadius: "14px",
-  width: "400px",
-  textAlign: "center",
-  boxShadow: "0 10px 40px rgba(0,0,0,0.2)"
-}
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(16px)",
 
+  padding: "24px",
+  borderRadius: "16px",
+  width: "400px",
+  maxWidth: "90%",
+
+  textAlign: "center",
+
+  boxShadow: "0 15px 50px rgba(0,0,0,0.15)",
+  border: "1px solid rgba(255,255,255,0.4)"
+}
 const header = { marginBottom: "20px" }
 
 const subtitle = {
   fontSize: "14px",
-  color: "#666",
+  color: "rgba(15, 23, 42, 0.7)",
   marginTop: "6px"
+}
+
+const fileLabel = {
+  fontSize: "13px",
+  fontWeight: "600",
+  color: "#374151"
 }
 
 const formStyle = {
@@ -244,46 +295,51 @@ const fileGroup = {
   gap: "6px"
 }
 
-const fileLabel = {
-  fontSize: "14px",
-  fontWeight: "600",
-  color: "#333"
-}
 
 const fileBox = {
-  border: "2px dashed #ccc",
+  border: "1px dashed rgba(0,0,0,0.15)",
   padding: "16px",
-  borderRadius: "8px",
+  borderRadius: "12px",
   cursor: "pointer",
   textAlign: "center",
   fontSize: "14px",
-  background: "#fafafa"
+
+  background: "rgba(255,255,255,0.6)",
+  color: "#374151",
+
+  transition: "all 0.25s ease"
 }
 
-const buttonRow = {
+const buttonRow = (isMobile) => ({
   display: "flex",
-  justifyContent: "space-between",
+  flexDirection: isMobile ? "column" : "row",
+  gap: "10px",
   marginTop: "10px"
-}
+})
 
-const submitBtn = {
-  background: "#2ecc71",
+const submitBtn = (isMobile) => ({
+  background: "linear-gradient(135deg, #22c55e, #6416a3)",
   color: "white",
   border: "none",
-  padding: "12px 20px",
-  borderRadius: "8px",
+  padding: "12px 22px",
+  width: isMobile ? "100%" : "auto",
+  borderRadius: "10px",
   fontWeight: "600",
-  cursor: "pointer"
-}
+  cursor: "pointer",
+  transition: "all 0.25s ease",
+  boxShadow: "0 10px 25px rgba(34,197,94,0.35)"
+})
 
-const cancelBtn = {
-  background: "#f1f1f1",
-  border: "none",
+const cancelBtn = (isMobile) => ({
+  background: "rgba(253, 10, 10, 0.97)",
+  color: "#fcfcfc",
+  border: "1px solid rgba(0,0,0,0.1)",
   padding: "12px 20px",
-  borderRadius: "8px",
-  cursor: "pointer"
-}
-
+  width: isMobile ? "100%" : "auto",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "500"
+})
 const errorStyle = {
   color: "red",
   fontWeight: "500",

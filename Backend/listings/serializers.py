@@ -24,6 +24,7 @@ class JobSmallSerializer(serializers.ModelSerializer):
             'salary',
             'salary_type',
             'work_mode',
+            'employment_type',
             'created_at',
             'tags',
             

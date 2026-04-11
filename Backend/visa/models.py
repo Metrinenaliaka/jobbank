@@ -45,6 +45,11 @@ class VisaStage(models.Model):
         choices=[("pending", "Pending"), ("approved", "Approved"), ("declined", "Declined")],
         default="pending"
     )
+    medical_status = models.CharField(  # <-- ADD THIS
+        max_length=20,
+        choices=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected")],
+        default="pending"
+    )
     decision_status = models.CharField(
     max_length=20,
     choices=[("pending", "Pending"), ("approved", "Approved"), ("rejected", "Rejected")],

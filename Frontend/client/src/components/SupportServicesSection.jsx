@@ -36,7 +36,7 @@ function SupportServicesSection() {
 
 const sectionStyle = {
   padding: "100px 20px",
-  backgroundColor: "#ffffff",
+  backgroundColor: "transparent",
 }
 
 const containerStyle = {

@@ -2,10 +2,12 @@ import { useEffect, useState } from "react"
 import { FaWhatsapp } from "react-icons/fa"
 import API from "../api"
 
-function WhatsAppBar() {
+function WhatsAppBar({ hidden }) {
+  if (hidden) return null
 
   const [settings, setSettings] = useState(null)
   const [isHovered, setIsHovered] = useState(false)
+  const isMobile = window.innerWidth < 768
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -31,20 +33,28 @@ function WhatsAppBar() {
     target="_blank"
     rel="noopener noreferrer"
     style={{
-        ...wrapper,
-        background: isHovered ? "rgb(81, 141, 201)" : "#ffffff"
-    }}
+  ...wrapper(isMobile),
+  background: isHovered
+    ? "rgba(34,197,94,0.15)"
+    : "rgba(255,255,255,0.7)"
+}}
     onMouseEnter={() => setIsHovered(true)}
     onMouseLeave={() => setIsHovered(false)}
+    onTouchStart={e => {
+  e.currentTarget.style.opacity = "0.8"
+}}
+onTouchEnd={e => {
+  e.currentTarget.style.opacity = "1"
+}}
     >
       <div style={left}>
         <div style={iconCircle}>
           <FaWhatsapp size={18} />
         </div>
-        <span style={text}>Customer Service online 24/7</span>
+        <span style={text(isMobile)}>Customer Service online 24/7</span>
       </div>
 
-      <div style={right}>
+      <div style={right(isMobile)}>
         <span>Chat on WhatsApp</span>
         <span style={{ marginLeft: "8px" }}>→</span>
       </div>
@@ -57,22 +67,26 @@ export default WhatsAppBar
 
 /* ===== STYLES ===== */
 
-const wrapper = {  
-  top: "300px",   // adjust to exact navbar height
+const wrapper = (isMobile) => ({
+  position: "fixed",
+  top: isMobile ? "80px" : "120px", // tighter to navbar
   left: 0,
   width: "100%",
   display: "flex",
-  boxSizing: "border-box",
   justifyContent: "space-between",
   alignItems: "center",
-  padding: "14px 24px",
-  textDecoration: "none",
-  borderBottom: "1px solid #e5e7eb",
-  borderLeft: "5px solid #2ecc71",
-  background: "#ffffff",
-  zIndex: 1000
-}
 
+  padding: isMobile ? "8px 12px" : "12px 20px", // 🔥 smaller
+  height: isMobile ? "44px" : "auto",           // 🔥 force compact height
+
+  background: "rgba(255,255,255,0.65)",
+  backdropFilter: "blur(12px)",
+
+  borderBottom: "1px solid rgba(255,255,255,0.3)",
+  borderLeft: "3px solid #22c55e",
+
+  zIndex: 1000
+})
 const left = {
   display: "flex",
   alignItems: "center",
@@ -81,16 +95,21 @@ const left = {
   fontWeight: "600"
 }
 
-const right = {
+const right = (isMobile) => ({
   display: "flex",
   alignItems: "center",
-  color: "#2ecc71",
-  fontWeight: "500"
-}
-
-const text = {
-  fontSize: "15px"
-}
+  color: "#16a34a",
+  fontWeight: "500",
+  fontSize: isMobile ? "12px" : "14px",
+  gap: "4px"
+})
+const text = (isMobile) => ({
+  fontSize: isMobile ? "12px" : "15px",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  maxWidth: isMobile ? "120px" : "none" // 🔥 tighter
+})
 
 const iconCircle = {
   background: "#2ecc71",

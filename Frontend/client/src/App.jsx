@@ -20,6 +20,9 @@ import AdminSupport from "./pages/admin/AdminSupport"
 import AdminLayout from "./pages/admin/AdminLayout"
 import Resources from "./pages/Resources"
 import VisaTracker from "./pages/VisaTracker"
+import Profile from "./components/Profile"
+import ProfileSettings from "./components/ProfileSettings"
+import Settings from "./components/Settings"
 
 
 
@@ -37,7 +40,7 @@ function App() {
 />
 <div style={pageWrapper}>
 
-  <WhatsAppBar />
+  {/* <WhatsAppBar /> */}
 
   <Routes>
     <Route path="/" element={<Home />} />
@@ -48,6 +51,9 @@ function App() {
     <Route path="/visa-tracker/:applicationId" element={<VisaTracker />} />
     <Route path="/reset-password/:token" element={<ResetPassword />} />
     <Route path="/email-verified" element={<EmailVerified />} />
+    <Route path="/profile" element={<Profile />} />
+<Route path="/manage-account" element={<ProfileSettings />} />
+<Route path="/settings" element={<Settings />} />
 
     <Route
       path="/admin"

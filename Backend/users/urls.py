@@ -10,7 +10,10 @@ from .views import (
     ConfirmPasswordResetView,
     AdminUserListView,
     AdminUserDetailView,
-    TelegramWebhookView
+    TelegramWebhookView,
+    me,
+    MeUpdateView,
+    ChangePasswordView
 )
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -23,6 +26,9 @@ urlpatterns = [
     path("admin/users/<int:pk>/", AdminUserDetailView.as_view()),
     path("admin/users/", AdminUserListView.as_view(), name="admin-users"),
     path("telegram/webhook/", TelegramWebhookView.as_view()),
+    path("me/", me, name="me"),
+    path("me/update/", MeUpdateView.as_view()),
+    path("change-password/", ChangePasswordView.as_view()),
 
 
 ]

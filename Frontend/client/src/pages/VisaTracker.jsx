@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "react-router-dom"
 import { createPortal } from "react-dom"
-import { CheckCircle, Activity, LifeBuoy, Hourglass } from "lucide-react"
+import { Check, CheckCircle, Activity, LifeBuoy, Hourglass } from "lucide-react"
 import API from "../api"
 import PaymentModal from "../components/PaymentModal"
 
@@ -20,7 +20,7 @@ const STAGES = [
 const STAGE_DOCS = {
   job_offer: "Job Offer Letter",
   work_permit: "Work Permit Document",
-  ielts: "IELTS Results",
+  ielts: "IELTS Certificate",
   medical: "Medical Report",
   biometrics: "Biometrics Slip",
   lmia: "LMIA Document"
@@ -347,6 +347,7 @@ const [modalLeft, setModalLeft] = useState(0)
   const [bookingDate, setBookingDate] = useState("")
   const [settings, setSettings] = useState(null)
   const circleRefs = useRef([])
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [showStageModal, setShowStageModal] = useState(false)
   const [showWorkPermitModal, setShowWorkPermitModal] = useState(false)
   const [showIELTSModal, setShowIELTSModal] = useState(false)
@@ -357,7 +358,445 @@ const [modalLeft, setModalLeft] = useState(0)
   const [showDecisionModal, setShowDecisionModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [hoveredCard, setHoveredCard] = useState(null)
-   // "top" or "bottom"
+
+    /* 🎨 STYLES */
+const styles = {
+  container: {
+  maxWidth: "1200px",
+  padding: isMobile ? "15px" : "30px",
+margin: isMobile ? "10px" : "40px auto",
+  backdropFilter: "blur(20px)",
+  fontFamily: "Segoe UI, sans-serif",
+  borderRadius: "20px",
+  position: "relative",
+  overflow: "visible",
+  background: `
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.6), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.4), transparent 40%),
+    linear-gradient(135deg, #e6eef8, #d6e4f5, #cfdff3)
+  `,
+
+  boxShadow: "0 20px 60px rgba(0,0,0,0.1)",
+  zIndex: 9999,
+},
+backgroundShimmer: isMobile ? {} : {
+  position: "absolute",
+  top: 0,
+  left: "-50%",
+  width: "200%",
+  height: "100%",
+  background: "linear-gradient(120deg, transparent, rgba(255,255,255,0.5), transparent)",
+  animation: "backgroundShimmer 6s infinite",
+  pointerEvents: "none"
+},
+  title: { fontSize: "28px", fontWeight: "600", color: "#2c3e50" },
+  subtitle: { color: "#7f8c8d", marginBottom: "25px" },
+  loading: { padding: "20px" },
+  highlightCard: { background: "linear-gradient(135deg, #fff7d6, #fceabb)", padding: "18px", borderRadius: "12px", marginBottom: "30px", borderLeft: "6px solid #f1c40f", boxShadow: "0 4px 15px rgba(0,0,0,0.08)" },
+timelineWrapper: {
+  position: "relative",
+  display: "flex",
+  justifyContent: isMobile ? "flex-start" : "space-between",
+  marginBottom: "120px",
+  padding: "0 10px",
+  overflowX: "hidden",
+},
+progressMini: {
+  width: "100%",
+  height: "5px",
+  background: "#eee",
+  borderRadius: "4px",
+  overflow: "hidden"
+},
+
+progressMiniFill: {
+  height: "100%",
+  background: "linear-gradient(90deg, #f1c40f, #f39c12)",
+  transition: "width 0.4s ease"
+},
+
+progressBackground: {
+  position: "absolute",
+  top: "14px",
+  left: "20px",
+  right: "20px",
+  height: "6px",
+  background: "linear-gradient(90deg, #ddd, #eee)",
+  borderRadius: "10px",
+  zIndex: 0
+},
+
+progressFill: {
+  position: "absolute",
+  top: "12px",
+  left: "20px",
+  height: "6px",
+  
+transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+  borderRadius: "10px",
+  boxShadow: "0 0 12px rgba(241,196,15,0.6)",
+  zIndex: 1
+},
+downloadSection: {
+  display: "flex",
+  gap: "12px",
+  marginTop: "20px",
+  flexWrap: "wrap", // wraps on small screens
+  justifyContent: "center"
+},
+
+downloadCard: {
+  padding: "12px 18px",
+  borderRadius: "12px",
+
+  background: "linear-gradient(135deg, #ffffff, #f1f5f9)",
+  border: "1px solid rgba(0,0,0,0.08)",
+
+  fontWeight: "600",
+  fontSize: "13px",
+  color: "#2c3e50",
+  textDecoration: "none",
+
+  boxShadow: "0 6px 15px rgba(0,0,0,0.08)",
+  transition: "all 0.25s ease"
+},
+docRow: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+
+  padding: "14px 16px",
+  marginBottom: "10px",
+
+  borderRadius: "12px",
+  background: "rgba(255,255,255,0.7)",
+  border: "1px solid rgba(0,0,0,0.05)",
+
+  transition: "all 0.25s ease",
+},
+
+docInfo: {
+  display: "flex",
+  flexDirection: "column"
+},
+
+docTitle: {
+  fontWeight: "600",
+  fontSize: "14px",
+  color: "#2c3e50",
+  margin: 0
+},
+
+docSub: {
+  fontSize: "12px",
+  color: "#888",
+  marginTop: "3px"
+},
+
+docActions: {
+  display: "flex",
+  gap: "10px"
+},
+
+downloadBtn: {
+  padding: "8px 12px",
+  borderRadius: "8px",
+
+  background: "linear-gradient(135deg, #3498db, #2b6cb0)",
+  color: "#fff",
+  textDecoration: "none",
+
+  fontSize: "12px",
+  fontWeight: "600",
+
+  boxShadow: "0 4px 12px rgba(52,152,219,0.3)",
+  transition: "all 0.2s ease"
+},
+
+noDoc: {
+  fontSize: "12px",
+  color: "#bbb"
+},
+cardTitle: {
+  fontSize: "16px",
+  fontWeight: "700",
+  color: "#2c3e50",
+  marginBottom: "10px",
+  letterSpacing: "0.3px"
+},
+  step: { textAlign: "center", zIndex: 2 },
+  circle: {
+  width: "26px",
+  height: "26px",
+  borderRadius: "50%",
+  margin: "0 auto",
+
+  display: "flex",              // ✅ center icon
+  alignItems: "center",        // ✅ vertical center
+  justifyContent: "center",    // ✅ horizontal center
+
+  boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+  transition: "all 0.3s ease"
+},
+  stepLabel: { fontSize: isMobile ? "10px" : "12px", whiteSpace: "nowrap", marginTop: "8px", color: "#555" },
+  grid: { display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: "20px", marginBottom: "25px" },
+  card: {
+  background: "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))",
+  backdropFilter: "blur(12px)",
+  padding: isMobile ? "14px" : "20px",
+  borderRadius: "16px",
+  boxSizing: "border-box", 
+  overflow: "hidden",
+  border: "1px solid rgba(255,255,255,0.4)",
+
+  boxShadow: "0 8px 25px rgba(0,0,0,0.08)",
+  transition: "all 0.3s ease",
+
+  cursor: "pointer",
+},
+cardHeaderGold: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  fontWeight: "600",
+  marginBottom: "12px",
+  padding: "8px 10px",
+  borderRadius: "10px",
+  background: "linear-gradient(135deg, #f1c40f, #f39c12)",
+  color: "#fff",
+  fontSize: "13px"
+},
+
+cardHeaderBlue: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  fontWeight: "600",
+  marginBottom: "12px",
+  padding: "8px 10px",
+  borderRadius: "10px",
+  background: "linear-gradient(135deg, #3498db, #2b6cb0)",
+  color: "#fff",
+  fontSize: "13px"
+},
+
+cardHeaderGreen: {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  fontWeight: "600",
+  marginBottom: "12px",
+  padding: "8px 10px",
+  borderRadius: "10px",
+  background: "linear-gradient(135deg, #2ecc71, #27ae60)",
+  color: "#fff",
+  fontSize: "13px"
+},
+  primaryBtn: {
+  marginTop: "12px",
+  padding: "10px 14px",
+  background: "linear-gradient(135deg, #2b6cb0, #1e3c72)",
+  color: "#fff",
+  border: "none",
+  width: isMobile ? "100%" : "auto",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "600",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+},
+heroCard: {
+  display: "flex",
+  alignItems: "center",
+  gap: "20px",
+  background: "linear-gradient(135deg, #fff7d6, #fceabb)",
+  padding: "20px",
+  borderRadius: "16px",
+  marginBottom: "30px",
+  boxShadow: "0 8px 20px rgba(0,0,0,0.08)"
+},
+
+heroLeft: {
+  fontSize: "40px"
+},
+
+heroContent: {
+  flex: 1
+},
+
+heroTitle: {
+  margin: 0,
+  fontSize: "18px",
+  fontWeight: "700",
+  color: "#2c3e50"
+},
+
+heroText: {
+  margin: "5px 0",
+  color: "#555"
+},
+
+heroSub: {
+  fontSize: "13px",
+  color: "#777"
+},
+
+heroProgress: {
+  marginTop: "10px",
+  height: "8px",
+  background: "#eee",
+  borderRadius: "6px",
+  overflow: "hidden"
+},
+
+heroProgressFill: {
+  height: "100%",
+  background: "linear-gradient(90deg, #f1c40f, #f39c12)"
+},
+
+heroPercent: {
+  marginTop: "5px",
+  fontSize: "12px",
+  color: "#555"
+},
+  link: { display: "block", marginTop: "8px", padding: "8px", background: "#f8f9fa", borderRadius: "6px", textDecoration: "none", color: "#2c3e50" },
+  docGroup: { marginBottom: "15px" }
+}
+const modalStyles = {
+  overlay: {
+  position: "fixed", // 🔥 important (not absolute)
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  pointerEvents: "auto",
+  inset: 0,
+  zIndex: 10000
+},
+
+ modal: {
+  position: "absolute",
+  transform: "none",
+  pointerEvents: "auto",
+ 
+  background: "linear-gradient(135deg, #fff7d6, #fceabb)",
+  padding: "18px 22px",
+  borderRadius: "14px",
+  width: isMobile ? "90%" : "360px",
+  left: isMobile ? "5%" : modalLeft,
+  top: modalTop,
+  zIndex: 9999,
+
+  boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+  border: "1px solid rgba(241,196,15,0.4)"
+},
+arrow: {
+  position: "absolute",
+  bottom: "-7px",
+  left: "50%",
+  transform: "translateX(-50%) rotate(45deg)",
+  width: "14px",
+  height: "14px",
+  background: "#fceabb",
+  borderRight: "1px solid rgba(241,196,15,0.4)",
+  borderBottom: "1px solid rgba(241,196,15,0.4)"
+},
+  
+
+progressBar: {
+  width: "100%",
+  height: "14px",
+  background: "rgba(0,0,0,0.08)",
+  borderRadius: "999px",
+  overflow: "hidden",
+  boxShadow: "inset 0 2px 6px rgba(0,0,0,0.15)"
+},
+
+progressFill: {
+  height: "100%",
+  background: "linear-gradient(90deg, #f6d365, #f39c12, #f1c40f)",
+  borderRadius: "999px",
+  position: "relative",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  paddingRight: "8px",
+
+  boxShadow: `
+    0 0 10px rgba(241,196,15,0.6),
+    inset 0 0 6px rgba(255,255,255,0.6)
+  `,
+
+  transition: "width 0.5s ease"
+},
+
+progressLabel: {
+  fontSize: "10px",
+  fontWeight: "600",
+  color: "#2c3e50",
+  background: "rgba(255,255,255,0.7)",
+  padding: "2px 6px",
+  borderRadius: "6px",
+  backdropFilter: "blur(4px)"
+},
+shimmer: isMobile ? { display: "none" } : {
+  position: "absolute",
+  top: 0,
+  left: "-40%",
+  width: "40%",
+  height: "100%",
+  background: "linear-gradient(120deg, transparent, rgba(255,255,255,0.7), transparent)",
+  animation: "shimmer 2s infinite"
+},
+headerRow: {
+  display: "flex",
+  alignItems: "center",
+  gap: "16px",
+  marginBottom: "10px"
+},
+
+iconContainer: {
+  width: "25%",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center"
+},
+
+textContainer: {
+  width: "75%"
+},
+
+title: {
+  margin: 0,
+  fontSize: "15px",
+  fontWeight: "700",
+  color: "#2c3e50"
+},
+
+message: {
+  marginTop: "6px",
+  fontSize: "13px",
+  color: "#555",
+  lineHeight: "1.4"
+}
+  
+}
+const spinStyle = {
+  animation: "spin 2s linear infinite"
+}
+const hourglassStyle = {
+  animation: "hourglassRotate 2.5s ease-in-out infinite",
+  filter: "drop-shadow(0 0 6px rgba(241,196,15,0.6))"
+}
+
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsMobile(window.innerWidth < 768)
+  }
+
+  window.addEventListener("resize", handleResize)
+  return () => window.removeEventListener("resize", handleResize)
+}, [])
   
   
   useEffect(() => {
@@ -583,7 +1022,8 @@ const modalContent = getStageModalContent(activeStageData)
         <div
   style={{
     ...styles.progressFill,
-    width: `${overallProgress}%`,
+    width: `${overallProgress}%`
+     ,
     background: getProgressStyle(overallProgress)
   }}
 />
@@ -620,6 +1060,7 @@ setModalPosition({
   y: rect.top + window.scrollY// 🔥 THIS is the key fix
 })
 
+
   // ✅ Open ONLY for allowed stages
   if (stage.key === "job_offer") setShowStageModal(true)
   if (stage.key === "work_permit") setShowWorkPermitModal(true)
@@ -649,7 +1090,13 @@ setModalPosition({
     transform: isCurrent ? "scale(1.3)" : "scale(1)",
   }}
 >
-  {isCompleted ? "✓" : index + 1}
+  {isCompleted ? (
+  <Check size={16} color="#fff" strokeWidth={3} />
+) : (
+  <span style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>
+    {index + 1}
+  </span>
+)}
 </div>
       
       <span style={styles.stepLabel}>{stage.label}</span>
@@ -690,7 +1137,10 @@ transform: "none"
     <div
       style={{
         ...modalStyles.progressFill,
-        width: `${stageProgress}%`
+        
+          width: `${stageProgress}%`, 
+
+    background: getProgressStyle(stageProgress)
       }}
     >
       <span style={modalStyles.progressLabel}>
@@ -759,7 +1209,8 @@ transform: "none"
     <div
       style={{
         ...modalStyles.progressFill,
-        width: `${stageProgress}%`
+        width: `${stageProgress}%`, 
+    background: getProgressStyle(stageProgress)
       }}
     >
       <span style={modalStyles.progressLabel}>
@@ -829,7 +1280,8 @@ transform: "none"
     <div
       style={{
         ...modalStyles.progressFill,
-        width: `${stageProgress}%`
+         width: `${stageProgress}%`, 
+    background: getProgressStyle(stageProgress)
       }}
     >
       <span style={modalStyles.progressLabel}>
@@ -897,7 +1349,8 @@ transform: "none"
     <div
       style={{
         ...modalStyles.progressFill,
-        width: `${stageProgress}%`
+         width: `${stageProgress}%`, 
+    background: getProgressStyle(stageProgress)
       }}
     >
       <span style={modalStyles.progressLabel}>
@@ -964,7 +1417,9 @@ transform: "none"
     <div
       style={{
         ...modalStyles.progressFill,
-        width: `${stageProgress}%`
+                
+         width: `${stageProgress}%`, 
+    background: getProgressStyle(stageProgress)
       }}
     >
       <span style={modalStyles.progressLabel}>
@@ -1045,7 +1500,9 @@ transform: "none"
     <div
       style={{
         ...modalStyles.progressFill,
-        width: `${stageProgress}%`
+                 
+         width: `${stageProgress}%`,
+    background: getProgressStyle(stageProgress)
       }}
     >
       <span style={modalStyles.progressLabel}>
@@ -1113,7 +1570,8 @@ transform: "none"
     <div
       style={{
         ...modalStyles.progressFill,
-        width: `${stageProgress}%`
+         width: `${stageProgress}%`,
+    background: getProgressStyle(stageProgress)
       }}
     >
       <span style={modalStyles.progressLabel}>
@@ -1182,7 +1640,8 @@ transform: "none"
     <div
       style={{
         ...modalStyles.progressFill,
-        width: `${stageProgress}%`
+         width: `${stageProgress}%`, 
+    background: getProgressStyle(stageProgress)
       }}
     >
       <span style={modalStyles.progressLabel}>
@@ -2165,6 +2624,7 @@ No additional documents are required.
     )}
   </>
 )
+
 : (
     // ✅ FALLBACK → your ORIGINAL working system
     <>
@@ -2172,6 +2632,26 @@ No additional documents are required.
       <div dangerouslySetInnerHTML={{ __html: activeStageData?.notes || "No updates yet" }} />
     </>
   )}
+  {activeStageKey === "decision" && activeStageData?.notes && (
+  <div style={{
+    marginTop: "15px",
+    padding: "12px 14px",
+    borderRadius: "10px",
+    background: "linear-gradient(135deg, #eef6ff, #d9eaff)",
+    borderLeft: "4px solid #3498db"
+  }}>
+    <p style={{
+      fontSize: "12px",
+      fontWeight: "700",
+      color: "#2b6cb0",
+      marginBottom: "6px"
+    }}>
+      📌 Decision Update
+    </p>
+
+    <div dangerouslySetInnerHTML={{ __html: activeStageData.notes }} />
+  </div>
+)}
   <div style={{ marginTop: "10px", marginBottom: "15px" }}>
   <div style={styles.progressMini}>
     <div
@@ -2208,22 +2688,22 @@ No additional documents are required.
   <div style={{ marginBottom: "12px" }}>
     <p style={{ fontWeight: "600" }}>Email Support</p>
     <a href="mailto:info@simizi.com" style={styles.link}>
-      info@simizi.com
+      info@simizi.net
     </a>
   </div>
 
   {settings?.is_whatsapp_active && settings?.whatsapp_link ? (
     <a
-      href={settings.whatsapp_link}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        ...styles.primaryBtn,
-        display: "inline-block",
-        textAlign: "center",
-        background: "#2ecc71"
-      }}
-    >
+  href={settings.whatsapp_link}
+  style={{
+    ...styles.primaryBtn,
+    display: "block",              // ✅ take full width
+    width: "100%",                 // ✅ stay inside card
+    boxSizing: "border-box",       // ✅ respect padding
+    textAlign: "center",
+    background: "#2ecc71"
+  }}
+>
       Chat on WhatsApp →
     </a>
   ) : (
@@ -2270,415 +2750,3 @@ onMouseLeave={(e) => {
 
 export default VisaTracker
 
-/* 🎨 STYLES */
-const styles = {
-  container: {
-  maxWidth: "1200px",
-  margin: "40px auto",
-  padding: "30px",
-  backdropFilter: "blur(20px)",
-  fontFamily: "Segoe UI, sans-serif",
-  borderRadius: "20px",
-  position: "relative",
-  overflow: "visible",
-  background: `
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.6), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.4), transparent 40%),
-    linear-gradient(135deg, #e6eef8, #d6e4f5, #cfdff3)
-  `,
-
-  boxShadow: "0 20px 60px rgba(0,0,0,0.1)",
-  zIndex: 9999,
-},
-backgroundShimmer: {
-  position: "absolute",
-  top: 0,
-  left: "-50%",
-  width: "200%",
-  height: "100%",
-  background: "linear-gradient(120deg, transparent, rgba(255,255,255,0.5), transparent)",
-  animation: "backgroundShimmer 6s infinite",
-  pointerEvents: "none"
-},
-  title: { fontSize: "28px", fontWeight: "600", color: "#2c3e50" },
-  subtitle: { color: "#7f8c8d", marginBottom: "25px" },
-  loading: { padding: "20px" },
-  highlightCard: { background: "linear-gradient(135deg, #fff7d6, #fceabb)", padding: "18px", borderRadius: "12px", marginBottom: "30px", borderLeft: "6px solid #f1c40f", boxShadow: "0 4px 15px rgba(0,0,0,0.08)" },
- timelineWrapper: {
-  position: "relative",
-  display: "flex",
-  justifyContent: "space-between",
-  marginBottom: "120px",
-  padding: "0 20px",
-  zIndex: 1
-},
-progressMini: {
-  width: "100%",
-  height: "5px",
-  background: "#eee",
-  borderRadius: "4px",
-  overflow: "hidden"
-},
-
-progressMiniFill: {
-  height: "100%",
-  background: "linear-gradient(90deg, #f1c40f, #f39c12)",
-  transition: "width 0.4s ease"
-},
-
-progressBackground: {
-  position: "absolute",
-  top: "14px",
-  left: "20px",
-  right: "20px",
-  height: "6px",
-  background: "linear-gradient(90deg, #ddd, #eee)",
-  borderRadius: "10px",
-  zIndex: 0
-},
-
-progressFill: {
-  position: "absolute",
-  top: "12px",
-  left: "20px",
-  height: "6px",
-  
-transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-  borderRadius: "10px",
-  boxShadow: "0 0 12px rgba(241,196,15,0.6)",
-  zIndex: 1
-},
-downloadSection: {
-  display: "flex",
-  gap: "12px",
-  marginTop: "20px",
-  flexWrap: "wrap", // wraps on small screens
-  justifyContent: "center"
-},
-
-downloadCard: {
-  padding: "12px 18px",
-  borderRadius: "12px",
-
-  background: "linear-gradient(135deg, #ffffff, #f1f5f9)",
-  border: "1px solid rgba(0,0,0,0.08)",
-
-  fontWeight: "600",
-  fontSize: "13px",
-  color: "#2c3e50",
-  textDecoration: "none",
-
-  boxShadow: "0 6px 15px rgba(0,0,0,0.08)",
-  transition: "all 0.25s ease"
-},
-docRow: {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-
-  padding: "14px 16px",
-  marginBottom: "10px",
-
-  borderRadius: "12px",
-  background: "rgba(255,255,255,0.7)",
-  border: "1px solid rgba(0,0,0,0.05)",
-
-  transition: "all 0.25s ease",
-},
-
-docInfo: {
-  display: "flex",
-  flexDirection: "column"
-},
-
-docTitle: {
-  fontWeight: "600",
-  fontSize: "14px",
-  color: "#2c3e50",
-  margin: 0
-},
-
-docSub: {
-  fontSize: "12px",
-  color: "#888",
-  marginTop: "3px"
-},
-
-docActions: {
-  display: "flex",
-  gap: "10px"
-},
-
-downloadBtn: {
-  padding: "8px 12px",
-  borderRadius: "8px",
-
-  background: "linear-gradient(135deg, #3498db, #2b6cb0)",
-  color: "#fff",
-  textDecoration: "none",
-
-  fontSize: "12px",
-  fontWeight: "600",
-
-  boxShadow: "0 4px 12px rgba(52,152,219,0.3)",
-  transition: "all 0.2s ease"
-},
-
-noDoc: {
-  fontSize: "12px",
-  color: "#bbb"
-},
-cardTitle: {
-  fontSize: "16px",
-  fontWeight: "700",
-  color: "#2c3e50",
-  marginBottom: "10px",
-  letterSpacing: "0.3px"
-},
-  step: { textAlign: "center", zIndex: 2 },
-  circle: { width: "26px", height: "26px", borderRadius: "50%", margin: "0 auto", boxShadow: "0 2px 8px rgba(0,0,0,0.2)", transition: "all 0.3s ease" },
-  stepLabel: { fontSize: "12px", marginTop: "8px", color: "#555" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginBottom: "25px" },
-  card: {
-  background: "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))",
-  backdropFilter: "blur(12px)",
-  padding: "20px",
-  borderRadius: "16px",
-  border: "1px solid rgba(255,255,255,0.4)",
-
-  boxShadow: "0 8px 25px rgba(0,0,0,0.08)",
-  transition: "all 0.3s ease",
-
-  cursor: "pointer",
-},
-cardHeaderGold: {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  fontWeight: "600",
-  marginBottom: "12px",
-  padding: "8px 10px",
-  borderRadius: "10px",
-  background: "linear-gradient(135deg, #f1c40f, #f39c12)",
-  color: "#fff",
-  fontSize: "13px"
-},
-
-cardHeaderBlue: {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  fontWeight: "600",
-  marginBottom: "12px",
-  padding: "8px 10px",
-  borderRadius: "10px",
-  background: "linear-gradient(135deg, #3498db, #2b6cb0)",
-  color: "#fff",
-  fontSize: "13px"
-},
-
-cardHeaderGreen: {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  fontWeight: "600",
-  marginBottom: "12px",
-  padding: "8px 10px",
-  borderRadius: "10px",
-  background: "linear-gradient(135deg, #2ecc71, #27ae60)",
-  color: "#fff",
-  fontSize: "13px"
-},
-  primaryBtn: {
-  marginTop: "12px",
-  padding: "10px 14px",
-  background: "linear-gradient(135deg, #2b6cb0, #1e3c72)",
-  color: "#fff",
-  border: "none",
-  borderRadius: "10px",
-  cursor: "pointer",
-  fontWeight: "600",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-},
-heroCard: {
-  display: "flex",
-  alignItems: "center",
-  gap: "20px",
-  background: "linear-gradient(135deg, #fff7d6, #fceabb)",
-  padding: "20px",
-  borderRadius: "16px",
-  marginBottom: "30px",
-  boxShadow: "0 8px 20px rgba(0,0,0,0.08)"
-},
-
-heroLeft: {
-  fontSize: "40px"
-},
-
-heroContent: {
-  flex: 1
-},
-
-heroTitle: {
-  margin: 0,
-  fontSize: "18px",
-  fontWeight: "700",
-  color: "#2c3e50"
-},
-
-heroText: {
-  margin: "5px 0",
-  color: "#555"
-},
-
-heroSub: {
-  fontSize: "13px",
-  color: "#777"
-},
-
-heroProgress: {
-  marginTop: "10px",
-  height: "8px",
-  background: "#eee",
-  borderRadius: "6px",
-  overflow: "hidden"
-},
-
-heroProgressFill: {
-  height: "100%",
-  background: "linear-gradient(90deg, #f1c40f, #f39c12)"
-},
-
-heroPercent: {
-  marginTop: "5px",
-  fontSize: "12px",
-  color: "#555"
-},
-  link: { display: "block", marginTop: "8px", padding: "8px", background: "#f8f9fa", borderRadius: "6px", textDecoration: "none", color: "#2c3e50" },
-  docGroup: { marginBottom: "15px" }
-}
-const modalStyles = {
-  overlay: {
-  position: "fixed", // 🔥 important (not absolute)
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  pointerEvents: "auto",
-  inset: 0,
-  zIndex: 10000
-},
-
- modal: {
-  position: "absolute",
-  transform: "none",
-  pointerEvents: "auto",
- 
-  background: "linear-gradient(135deg, #fff7d6, #fceabb)",
-  padding: "18px 22px",
-  borderRadius: "14px",
-  width: "360px",
-  zIndex: 9999,
-
-  boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
-  border: "1px solid rgba(241,196,15,0.4)"
-},
-arrow: {
-  position: "absolute",
-  bottom: "-7px",
-  left: "50%",
-  transform: "translateX(-50%) rotate(45deg)",
-  width: "14px",
-  height: "14px",
-  background: "#fceabb",
-  borderRight: "1px solid rgba(241,196,15,0.4)",
-  borderBottom: "1px solid rgba(241,196,15,0.4)"
-},
-  
-
-progressBar: {
-  width: "100%",
-  height: "14px",
-  background: "rgba(0,0,0,0.08)",
-  borderRadius: "999px",
-  overflow: "hidden",
-  boxShadow: "inset 0 2px 6px rgba(0,0,0,0.15)"
-},
-
-progressFill: {
-  height: "100%",
-  background: "linear-gradient(90deg, #f6d365, #f39c12, #f1c40f)",
-  borderRadius: "999px",
-  position: "relative",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  paddingRight: "8px",
-
-  boxShadow: `
-    0 0 10px rgba(241,196,15,0.6),
-    inset 0 0 6px rgba(255,255,255,0.6)
-  `,
-
-  transition: "width 0.5s ease"
-},
-
-progressLabel: {
-  fontSize: "10px",
-  fontWeight: "600",
-  color: "#2c3e50",
-  background: "rgba(255,255,255,0.7)",
-  padding: "2px 6px",
-  borderRadius: "6px",
-  backdropFilter: "blur(4px)"
-},
-
-shimmer: {
-  position: "absolute",
-  top: 0,
-  left: "-40%",
-  width: "40%",
-  height: "100%",
-  background: "linear-gradient(120deg, transparent, rgba(255,255,255,0.7), transparent)",
-  animation: "shimmer 2s infinite"
-},
-headerRow: {
-  display: "flex",
-  alignItems: "center",
-  gap: "16px",
-  marginBottom: "10px"
-},
-
-iconContainer: {
-  width: "25%",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center"
-},
-
-textContainer: {
-  width: "75%"
-},
-
-title: {
-  margin: 0,
-  fontSize: "15px",
-  fontWeight: "700",
-  color: "#2c3e50"
-},
-
-message: {
-  marginTop: "6px",
-  fontSize: "13px",
-  color: "#555",
-  lineHeight: "1.4"
-}
-  
-}
-const spinStyle = {
-  animation: "spin 2s linear infinite"
-}
-const hourglassStyle = {
-  animation: "hourglassRotate 2.5s ease-in-out infinite",
-  filter: "drop-shadow(0 0 6px rgba(241,196,15,0.6))"
-}

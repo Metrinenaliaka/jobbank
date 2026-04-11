@@ -91,3 +91,18 @@ class AdminUserSerializer(serializers.ModelSerializer):
         ]
     def get_full_name(self, obj):
         return f"{obj.full_name}"
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "full_name",
+            "email",
+            "phone_number",
+            "nationality",
+        ]
+
+        def validate_email(self, value):
+            if User.objects.filter(email=value).exclude(id=self.instance.id).exists():
+                raise serializers.ValidationError("Email already in use.")
+            return value

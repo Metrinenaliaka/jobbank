@@ -6,6 +6,7 @@ import API from "../api"
 import ApplyModal from "../components/ApplyModal"
 
 function JobDetail() {
+  const isMobile = window.innerWidth < 768
   const { id } = useParams()
   useEffect(() => {
   document.title = "Simizi | Job Details"
@@ -35,19 +36,44 @@ function JobDetail() {
   }
 
   return (
+    
     <>
-      <div style={wrapper}>
+      <div style={wrapper(isMobile)}>
 
-        <h2 style={title}>{job.title}</h2>
+       <div style={header}>
+  <div>
+    <h2 style={title(isMobile)}>{job.title}</h2>
 
-        <p style={meta}>
-          Posted on {new Date(job.created_at).toLocaleDateString()} by{" "}
-          <strong>{job.company_name}</strong>
-        </p>
+    <p style={meta}>
+      Posted on {new Date(job.created_at).toLocaleDateString()} by{" "}
+      <strong>{job.company_name}</strong>
+    </p>
+  </div>
 
-        <button style={applyBtn} onClick={() => setShowApply(true)}>
-          Apply Now
-        </button>
+  <button
+  style={applyBtn}
+  onClick={() => setShowApply(true)}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.transform = "translateY(-2px) scale(1.02)"
+    e.currentTarget.style.boxShadow = `
+      0 15px 35px rgba(34,197,94,0.45),
+      0 0 35px rgba(34,197,94,0.3)
+    `
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.transform = "translateY(0) scale(1)"
+    e.currentTarget.style.boxShadow = `
+      0 10px 25px rgba(34,197,94,0.35),
+      0 0 30px rgba(34,197,94,0.25)
+    `
+  }}
+  onMouseDown={(e) => {
+    e.currentTarget.style.transform = "scale(0.96)"
+  }}
+>
+  Apply Now
+</button>
+</div>
 
         {showApply && (
           <ApplyModal
@@ -75,37 +101,37 @@ function JobDetail() {
         </Section>
 
         <Section title="Benefits">
-          <div
+          <div style={richText}
   dangerouslySetInnerHTML={{ __html: job.benefits }}
 />
         </Section>
 
         <Section title="Overview">
           <Info label="Languages" value={job.languages} />
-          <div
+          <div style={richText}
   dangerouslySetInnerHTML={{ __html: job.education }}
 />
           <Info label="Experience" value={job.experience} />
-          <div
+          <div style={richText}
   dangerouslySetInnerHTML={{ __html: job.work_environment }}
 />
           <Info label="Work Setting" value={job.work_setting} />
         </Section>
 
         <Section title="Responsibilities">
-          <div
+          <div style={richText}
   dangerouslySetInnerHTML={{ __html: job.responsibilities }}
 />
         </Section>
 
         <Section title="Supervision">
-          <div
+          <div style={richText}
   dangerouslySetInnerHTML={{ __html: job.supervision }}
 />
         </Section>
 
         <Section title="Specialization">
-          <div
+          <div style={richText}
   dangerouslySetInnerHTML={{ __html: job.specialization }}
 />
         </Section>
@@ -116,9 +142,8 @@ function JobDetail() {
 }
 
 /* ================= REUSABLE COMPONENTS ================= */
-
 const Section = ({ title, children }) => (
-  <div style={section}>
+  <div style={sectionCard}>
     <h3 style={sectionTitle}>{title}</h3>
     {children}
   </div>
@@ -142,38 +167,73 @@ const Paragraph = ({ label, text }) => (
 
 /* ================= STYLES ================= */
 
-const wrapper = {
+const wrapper = (isMobile) => ({
   maxWidth: "900px",
-  margin: "40px auto",
-  padding: "30px",
-  background: "white",
-  borderRadius: "12px",
-  boxShadow: "0 8px 25px rgba(0,0,0,0.08)"
-}
+  margin: isMobile ? "20px auto" : "60px auto",
+  padding: isMobile ? "20px 16px" : "30px",
 
-const title = {
-  marginTop: 0,
-  marginBottom: "10px"
-}
+  background: "rgba(255,255,255,0.65)",
+  backdropFilter: "blur(14px)",
 
-const meta = {
-  color: "#666",
+  borderRadius: "18px",
+  border: "1px solid rgba(255,255,255,0.4)",
+
+  boxShadow: "0 12px 40px rgba(0,0,0,0.08)"
+})
+const header = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: "20px",
+  flexWrap: "wrap",
   marginBottom: "20px"
 }
+const title = (isMobile) => ({
+  margin: 0,
+  fontSize: isMobile ? "22px" : "28px",
+  fontWeight: "700",
+  color: "#065f46"
+})
+const sectionCard = {
+  marginTop: "20px",
+  padding: "18px",
 
+  background: "rgba(255,255,255,0.6)",
+  backdropFilter: "blur(10px)",
+
+  borderRadius: "14px",
+  border: "1px solid rgba(255,255,255,0.4)",
+
+  boxShadow: "0 8px 25px rgba(0,0,0,0.05)"
+}
+const richText = {
+  fontSize: "14px",
+  lineHeight: "1.6",
+  color: "#374151"
+}
+const sectionTitle = {
+  marginBottom: "12px",
+  fontSize: "16px",
+  fontWeight: "600",
+  color: "#16a34a"
+}
+const meta = {
+  color: "#6b7280",
+  fontSize: "14px",
+  marginTop: "6px"
+}
 const section = {
   marginTop: "35px",
   paddingTop: "20px",
   borderTop: "1px solid #eee"
 }
 
-const sectionTitle = {
-  marginBottom: "15px",
-  color: "#2ecc71"
-}
+
 
 const infoRow = {
-  marginBottom: "8px"
+  marginBottom: "8px",
+  fontSize: "14px",
+  color: "#374151"
 }
 
 const paragraph = {
@@ -183,13 +243,19 @@ const paragraph = {
 }
 
 const applyBtn = {
-  background: "#2ecc71",
+  background: "linear-gradient(135deg, #22c55e, #16a34a)",
   color: "white",
   border: "none",
-  padding: "10px 18px",
-  borderRadius: "6px",
+  padding: "12px 18px",
+  borderRadius: "10px",
   cursor: "pointer",
-  marginBottom: "15px"
-}
+  fontWeight: "600",
 
+  boxShadow: `
+    0 10px 25px rgba(34,197,94,0.35),
+    0 0 30px rgba(34,197,94,0.25)
+  `,
+
+  transition: "all 0.2s ease"
+}
 export default JobDetail

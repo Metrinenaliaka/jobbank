@@ -5,6 +5,7 @@ function Resources() {
   return (
   <section style={sectionStyle}>
     <div style={container}>
+      <div style={bgGlow} />
       <p style={introText}>
         From the latest job news to resume tips and tricks,
         keep up to date with the latest information.
@@ -161,7 +162,31 @@ function ResourceCard({ icon, title, text, link, onClick }) {
   }
 
   return (
-    <div style={card} onClick={handleClick}>
+    <div style={card} onClick={handleClick}
+    onMouseEnter={e => {
+    e.currentTarget.style.transform = "translateY(-6px) scale(1.02)"
+    e.currentTarget.style.boxShadow = `
+      0 25px 70px rgba(34,197,94,0.18),
+      0 0 80px rgba(34,197,94,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.7)
+    `
+  }}
+  onMouseLeave={e => {
+    e.currentTarget.style.transform = "translateY(0) scale(1)"
+    e.currentTarget.style.boxShadow = `
+      0 15px 50px rgba(34,197,94,0.10),
+      0 0 60px rgba(34,197,94,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.6)
+    `
+  }}
+  onTouchStart={e => {
+  e.currentTarget.style.transform = "scale(0.97)"
+}}
+
+onTouchEnd={e => {
+  e.currentTarget.style.transform = "scale(1)"
+}}
+    >
       <div style={iconWrapper}>{icon}</div>
       <h3 style={cardTitle}>{title}</h3>
       <p style={cardText}>{text}</p>
@@ -249,14 +274,16 @@ function ClusterIcon() {
 
 const sectionStyle = {
   padding: "110px 0",
-  background: "#f3f4f6"
+  background: "transparent"
 }
 
 const container = {
   maxWidth: "1100px",
   margin: "0 auto",
   padding: "0 20px",
-  textAlign: "center"
+  textAlign: "center",
+  position: "relative",
+  zIndex: 2
 }
 const modalActions = {
   marginTop: "25px",
@@ -273,6 +300,16 @@ const introText = {
   margin: "0 auto 80px auto",
   lineHeight: "1.6"
 }
+const bgGlow = {
+  position: "absolute",
+  top: "-150px",
+  left: "-150px",
+  width: "500px",
+  height: "500px",
+  background: "radial-gradient(circle, rgba(34,197,94,0.5), transparent 70%)",
+  filter: "blur(100px)",
+  zIndex: 0
+}
 
 const grid = {
   display: "grid",
@@ -281,16 +318,53 @@ const grid = {
 }
 
 const card = {
-  background: "#eaecef",
+  background: "rgba(255,255,255,0.08)",
+backdropFilter: "blur(22px)",
+WebkitBackdropFilter: "blur(22px)",
+
   padding: "40px 30px",
-  borderRadius: "25px",
+  borderRadius: "20px",
   textAlign: "center",
-  transition: "0.3s ease",
-  cursor: "pointer"   // ✅ important
+
+  border: "1px solid rgba(255,255,255,0.5)",
+
+  boxShadow: `
+    0 15px 50px rgba(34,197,94,0.10),
+    0 0 60px rgba(34,197,94,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.6)
+  `,
+  backgroundImage: `
+  linear-gradient(
+    145deg,
+    rgba(255,255,255,0.25),
+    rgba(255,255,255,0.05)
+  )
+`,
+  transition: "all 0.3s ease",
+  cursor: "pointer",
+  position: "relative",
+  overflow: "hidden"
 }
 
 const iconWrapper = {
-  marginBottom: "20px"
+  marginBottom: "20px",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+
+  width: "70px",
+  height: "70px",
+  marginInline: "auto",
+
+  borderRadius: "50%",
+
+  background: "rgba(255,255,255,0.15)",
+  backdropFilter: "blur(10px)",
+
+  boxShadow: `
+    0 8px 20px rgba(34,197,94,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.6)
+  `
 }
 
 const cardTitle = {
@@ -315,15 +389,17 @@ const modalOverlay = {
 }
 
 const modal = {
-  background: "white",
+  background: "rgba(255,255,255,0.9)",
+  backdropFilter: "blur(20px)",
+  borderRadius: "16px",
   padding: "30px",
-  borderRadius: "12px",
-  maxWidth: "600px",
-  maxHeight: "80vh",
-  overflowY: "auto",
-  textAlign: "left"
-}
 
+  boxShadow: `
+    0 25px 60px rgba(0,0,0,0.25),
+    0 0 40px rgba(34,197,94,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.6)
+  `
+}
 const modalLink = {
   display: "inline-block",
   marginTop: "20px",

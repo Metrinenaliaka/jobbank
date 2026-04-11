@@ -1,4 +1,4 @@
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/style.css"
 import { AuthContext } from "../context/AuthContext"
@@ -6,6 +6,13 @@ import { AuthContext } from "../context/AuthContext"
 function RegisterModal({ onClose, onSwitchToLogin }) {
 
   const { register } = useContext(AuthContext)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth < 768)
+  window.addEventListener("resize", handleResize)
+  return () => window.removeEventListener("resize", handleResize)
+}, [])
 
   const languagesList = [
     "English","French","Spanish","German","Arabic",
@@ -105,7 +112,7 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
 
   return (
     <div style={overlay}>
-      <div style={modal}>
+      <div style={modal(isMobile)}>
 
         {successData ? (
 
@@ -152,7 +159,15 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
             <form onSubmit={handleSubmit} style={formStyle}>
 
               <input
-                style={input}
+              onFocus={(e) => {
+  e.target.style.border = "1px solid #22c55e"
+  e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.15)"
+}}
+onBlur={(e) => {
+  e.target.style.border = "1px solid rgba(0,0,0,0.15)"
+  e.target.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)"
+}}
+                style={{ ...input, color: "#000" }}
                 name="full_name"
                 placeholder="Full Name"
                 onChange={handleChange}
@@ -160,7 +175,15 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
               />
 
               <input
-                style={input}
+              onFocus={(e) => {
+  e.target.style.border = "1px solid #22c55e"
+  e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.15)"
+}}
+onBlur={(e) => {
+  e.target.style.border = "1px solid rgba(0,0,0,0.15)"
+  e.target.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)"
+}}
+                style={{ ...input, color: "#000" }}
                 name="email"
                 placeholder="Email"
                 onChange={handleChange}
@@ -168,7 +191,15 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
               />
 
               <input
-                style={input}
+              onFocus={(e) => {
+  e.target.style.border = "1px solid #22c55e"
+  e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.15)"
+}}
+onBlur={(e) => {
+  e.target.style.border = "1px solid rgba(0,0,0,0.15)"
+  e.target.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)"
+}}
+                style={{ ...input, color: "#000" }}
                 type="password"
                 name="password"
                 placeholder="Password"
@@ -177,7 +208,16 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
               />
 
               <input
-                style={input}
+              onFocus={(e) => {
+  e.target.style.border = "1px solid #22c55e"
+  e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.15)"
+}}
+onBlur={(e) => {
+  e.target.style.border = "1px solid rgba(0,0,0,0.15)"
+  e.target.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)"
+}}
+                style={{ ...input, color: "#000" }}
+                
                 type="number"
                 name="year_of_birth"
                 placeholder="Year of Birth"
@@ -185,7 +225,7 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
               />
 
               <select
-                style={input}
+                style={{ ...input, color: "#000" }}
                 name="languages"
                 onChange={handleChange}
                 required
@@ -197,21 +237,31 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
               </select>
 
               <PhoneInput
+              onFocus={(e) => {
+  e.target.style.border = "1px solid #22c55e"
+  e.target.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.15)"
+}}
+onBlur={(e) => {
+  e.target.style.border = "1px solid rgba(0,0,0,0.15)"
+  e.target.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)"
+}}
                 country={"ca"}
                 value={form.phone_number}
                 onChange={(phone) =>
                   setForm({ ...form, phone_number: phone })
                 }
                 inputStyle={{
-                  width: "100%",
-                  borderRadius: "6px",
-                  border: "1px solid #ddd",
-                  height: "42px"
-                }}
+  width: "100%",
+  borderRadius: "10px",
+  border: "1px solid rgba(0,0,0,0.15)",
+  height: "44px",
+  background: "#ffffff",
+  fontSize: "16px"
+}}
               />
 
               <select
-                style={input}
+                style={{ ...input, color: "#000" }}
                 name="nationality"
                 onChange={handleChange}
                 required
@@ -223,7 +273,7 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
               </select>
 
               <select
-                style={input}
+                style={{ ...input, color: "#000" }}
                 name="gender"
                 onChange={handleChange}
               >
@@ -266,25 +316,45 @@ function RegisterModal({ onClose, onSwitchToLogin }) {
 const overlay = {
   position: "fixed",
   inset: 0,
-  background: "rgba(0,0,0,0.45)",
+  background: "rgba(15, 23, 42, 0.35)",
+  backdropFilter: "blur(6px)",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
   zIndex: 3000
 }
 
-const modal = {
-  background: "white",
+const modal = (isMobile) => ({
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(18px)",
+
   width: "420px",
+  maxWidth: "92%",
   maxHeight: "90vh",
+
   overflowY: "auto",
-  padding: "30px",
-  borderRadius: "12px",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+
+  padding: isMobile ? "20px 16px" : "28px",
+
+  borderRadius: "18px",
+  border: "1px solid rgba(255,255,255,0.4)",
+
+  boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+
+  color: "#1f2937"
+})
+const title = {
+  margin: 0,
+  fontSize: "20px",
+  fontWeight: "700",
+  color: "#065f46"
 }
 
-const title = { margin: 0 }
-const subtitle = { color: "#666", marginBottom: "20px" }
+const subtitle = {
+  color: "rgba(15,23,42,0.7)",
+  marginBottom: "18px",
+  fontSize: "14px"
+}
 
 const formStyle = {
   display: "flex",
@@ -293,22 +363,34 @@ const formStyle = {
 }
 
 const input = {
-  padding: "10px",
-  border: "1px solid #ddd",
-  borderRadius: "6px",
-  height: "42px"
+  padding: "12px",
+  border: "1px solid rgba(0,0,0,0.15)",
+  borderRadius: "10px",
+  height: "44px",
+
+  background: "#ffffff", // 🔥 IMPORTANT (not glass)
+   color: "#000000",
+
+  fontSize: "14px",
+
+  boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+  transition: "all 0.2s ease"
 }
 
 const primaryBtn = {
-  background: "#2ecc71",
+  background: "linear-gradient(135deg, #22c55e, #8f75d6)",
   color: "white",
   border: "none",
   padding: "12px",
-  borderRadius: "6px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontWeight: "600",
-  marginTop: "10px"
+  marginTop: "10px",
+
+  boxShadow: "0 10px 25px rgba(34,197,94,0.3)",
+  transition: "all 0.2s ease"
 }
+
 
 const telegramBtn = {
   display: "inline-block",
@@ -339,16 +421,16 @@ const closeBtn = {
   width: "100%",
   padding: "10px",
   border: "none",
-  background: "#f5f5f5",
+  background: "#fa0c0c",
   borderRadius: "6px",
   cursor: "pointer"
 }
 
 const errorBox = {
-  background: "#ffe6e6",
-  color: "#c0392b",
+  background: "rgba(239,68,68,0.1)",
+  color: "#b91c1c",
   padding: "10px 14px",
-  borderRadius: "6px",
+  borderRadius: "8px",
   marginBottom: "15px",
   display: "flex",
   justifyContent: "space-between",
@@ -365,11 +447,12 @@ const closeInline = {
 }
 
 const successBox = {
-  background: "#eef7ff",
+  background: "rgba(34,197,94,0.1)",
   padding: "20px",
-  borderRadius: "8px",
+  borderRadius: "10px",
   marginBottom: "20px",
-  textAlign: "center"
+  textAlign: "center",
+  color: "#065f46"
 }
 
 export default RegisterModal
