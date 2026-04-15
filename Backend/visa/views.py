@@ -289,10 +289,41 @@ class UpdateVisaStageView(APIView):
             elif stage.biometrics_status == "declined":
                 stage.status = "in_progress"
                 stage.notes = "Biometrics declined, please rebook."
+                
+                # IELTS
+        if "ielts_status" in request.data:
+            stage.ielts_status = request.data["ielts_status"]
 
-        # Medical
+            if stage.ielts_status == "approved":
+                stage.notes = "IELTS results approved"
+
+            elif stage.ielts_status == "rejected":
+                stage.notes = "IELTS results rejected, user must re-upload"
+
         if "medical_booking_date" in request.data:
             stage.medical_booking_date = request.data["medical_booking_date"]
+
+            # If admin sets new date → auto approve
+            if request.user.is_staff:
+                stage.medical_status = "approved"
+                stage.status = "completed"
+                stage.date_completed = timezone.now()
+                stage.notes = f"📅 Medical scheduled for {stage.medical_booking_date}"
+        
+                # ================================
+        # 🏥 MEDICAL LOGIC (FIX)
+        # ================================
+        if "medical_status" in request.data:
+            stage.medical_status = request.data["medical_status"]
+
+            if stage.medical_status == "approved":
+                stage.status = "completed"
+                stage.date_completed = timezone.now()
+                stage.notes = "✅ Medical approved"
+
+            elif stage.medical_status == "rejected":
+                stage.status = "in_progress"
+                stage.notes = "❌ Medical rejected. Please re-upload report."
 
         # Generic status
         if "status" in request.data:

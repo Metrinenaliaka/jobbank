@@ -84,11 +84,21 @@ function Navbar({ onLoginClick, onSignupClick }) {
       <WhatsAppBar hidden={menuOpen} />
       
       <div style={wrapper(isMobile)}>
+        
 
   {/* LOGO */}
   <Link to="/" style={logoStyle}>
     <h1 style={{ ...logoText, fontSize: logoSize }}>simizi</h1>
   </Link>
+
+  {isMobile && (
+  <div
+    style={desktopHamburger}
+    onClick={toggleMenu}
+  >
+    <Menu size={22} />
+  </div>
+)}
 
   {/* ✅ DESKTOP NAV LINKS BACK */}
   <div id="desktop-menu-wrapper">

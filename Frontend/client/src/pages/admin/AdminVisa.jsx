@@ -45,33 +45,33 @@ const [loading, setLoading] = useState({})
       ...prev,
       [stageId]: { ...prev[stageId], [action]: true }
     }))
-      setVisas(prev =>
-  prev.map(v => {
-    if (v.id !== selected?.id) return v
 
-    return {
-      ...v,
-      stages: v.stages.map(s =>
-        s.id === stageId
-          ? { ...s, ...(status && { status }), ...extra }
-          : s
-      )
-    }
-  })
-)
-      setStatusMessages(prev => ({ ...prev, [stageId]: message }))
-      await fetchData()
-    } catch (err) {
-      setStatusMessages(prev => ({ ...prev, [stageId]: "Update failed" }))
-      console.error(err)
-    } finally {
-      setLoading(prev => ({
-  ...prev,
-  [stageId]: { ...prev[stageId], [action]: false }
-}))
-      setTimeout(() => setStatusMessages(prev => ({ ...prev, [stageId]: "" })), 3000)
-    }
+    // ✅ SEND TO BACKEND (THIS WAS MISSING)
+    await API.patch(`visa-stage/${stageId}/update/`, {
+      ...(status && { status }),
+      ...extra,
+      notes: notes[stageId] ?? undefined
+    })
+
+    // ✅ THEN refresh
+    await fetchData()
+
+    setStatusMessages(prev => ({ ...prev, [stageId]: message }))
+
+  } catch (err) {
+    console.error(err)
+    setStatusMessages(prev => ({ ...prev, [stageId]: "Update failed" }))
+  } finally {
+    setLoading(prev => ({
+      ...prev,
+      [stageId]: { ...prev[stageId], [action]: false }
+    }))
+
+    setTimeout(() => {
+      setStatusMessages(prev => ({ ...prev, [stageId]: "" }))
+    }, 3000)
   }
+}
 
   const fetchData = async () => {
     const res = await API.get("visa-applications/")
@@ -304,10 +304,10 @@ border: selected?.id === v.id ? "1px solid #3498db" : "1px solid transparent"
     <button
       style={{ ...styles.successBtn, background: "#2ecc71" }}
       onClick={() =>
-        updateStage(stage.id, null, "Medical report approved", {
-          medical_status: "approved"
-        })
-      }
+  updateStage(stage.id, null, "Medical approved", {
+    medical_status: "approved"
+  })
+}
     >
       Approve Report
     </button>
@@ -330,10 +330,66 @@ border: selected?.id === v.id ? "1px solid #3498db" : "1px solid transparent"
   </p>
 )}
 
-{stage.key === "medical" && stage.medical_status === "rejected" && (
-  <p style={{ color: "#e74c3c", fontWeight: "600", marginTop: "10px" }}>
-    ❌ Medical Report Rejected
-  </p>
+{stage.medical_status === "rejected" && (
+  <>
+    <p style={{ color: "#e74c3c", fontWeight: "600" }}>
+      ❌ Medical rejected — upload required
+    </p>
+  </>
+)}
+
+{stage.key === "medical" && stage.medical_booking_date && stage.status !== "completed" && (
+  <div style={styles.buttonGroup}>
+    
+    <button
+      style={{ ...styles.successBtn, background: "#2ecc71" }}
+      onClick={() =>
+        updateStage(stage.id, null, "Medical booking approved", {
+          medical_status: "approved"
+        })
+      }
+    >
+      Approve Booking
+    </button>
+
+    <button
+      style={{ ...styles.dangerBtn, background: "#e74c3c" }}
+      onClick={() =>
+  updateStage(stage.id, "declined", "Medical booking rejected", {
+    medical_status: "rejected"
+  })
+}
+    >
+      Reject & Set New Date
+    </button>
+  </div>
+)}
+
+{stage.status === "declined" && (
+  <div>
+    <input
+      type="date"
+      value={adminBiometricDates[stage.id] || ""}
+      onChange={(e) =>
+        setAdminBiometricDates(prev => ({
+          ...prev,
+          [stage.id]: e.target.value
+        }))
+      }
+    />
+
+    <button
+      onClick={() =>
+  updateStage(stage.id, null, "New medical date assigned", {
+    medical_booking_date: adminBiometricDates[stage.id],
+    medical_status: "approved",
+    status: "in_progress"
+  })
+}
+    >
+      Set New Date
+    </button>
+  </div>
 )}
 
                 {/* NOTES EDITOR */}
@@ -357,7 +413,7 @@ border: selected?.id === v.id ? "1px solid #3498db" : "1px solid transparent"
                 {statusMessages[stage.id] && <span style={styles.inlineMsg}>{statusMessages[stage.id]}</span>}
 
                 {/* COMPLETE BUTTON */}
-                {stage.status !== "completed" && stage.key !== "decision" && stage.status !== "declined" && (
+                {stage.status !== "completed" && stage.key !== "decision"  && (
                   <button
                     style={styles.completeBtn}
                     onClick={() => updateStage(stage.id, "completed", "Stage marked complete!")}
@@ -573,16 +629,31 @@ border: selected?.id === v.id ? "1px solid #3498db" : "1px solid transparent"
           ))}
       </div>
     )}
+    {stage.ielts_status === "approved" &&
+ stage.uploads?.some(u => u.uploaded_by_admin) &&
+ stage.status !== "completed" && (
+  <button
+    style={{ ...styles.completeBtn, background: "#2ecc71", marginTop: "10px" }}
+    onClick={() =>
+      updateStage(stage.id, "completed", "IELTS Stage Completed")
+    }
+  >
+    Complete IELTS Stage
+  </button>
+)}
 
     {/* ========================= */}
     {/* REVIEW BUTTONS */}
     {/* ========================= */}
-    {stage.uploads?.some(u => !u.uploaded_by_admin) && stage.status !== "completed" && (
+    {stage.uploads?.some(u => !u.uploaded_by_admin) && stage.status !== "completed" &&
+ (stage.ielts_status === "pending" || !stage.ielts_status) && (
       <div style={styles.buttonGroup}>
         <button
           style={{ ...styles.successBtn, background: "#2ecc71" }}
           onClick={() =>
-            updateStage(stage.id, "completed", "IELTS Approved")
+            updateStage(stage.id, null, "IELTS Approved", {
+  ielts_status: "approved"
+})
           }
         >
           Approve Results
@@ -591,13 +662,25 @@ border: selected?.id === v.id ? "1px solid #3498db" : "1px solid transparent"
         <button
           style={{ ...styles.dangerBtn, background: "#e74c3c", marginLeft: "10px" }}
           onClick={() =>
-            updateStage(stage.id, "declined", "IELTS Rejected")
+            updateStage(stage.id, null, "IELTS Rejected", {
+  ielts_status: "rejected"
+})
           }
         >
           Reject Results
         </button>
       </div>
     )}
+    {stage.ielts_status === "approved" && (
+  <p style={{ color: "#2ecc71", fontWeight: "600" }}>
+    ✅ IELTS Results Approved
+  </p>
+)}
+{stage.ielts_status === "rejected" && (
+  <p style={{ color: "#e74c3c", fontWeight: "600" }}>
+    ❌ IELTS Results Rejected
+  </p>
+)}
 
     {/* ========================= */}
     {/* ADMIN CERTIFICATE UPLOAD */}

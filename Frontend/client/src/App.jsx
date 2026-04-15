@@ -23,6 +23,8 @@ import VisaTracker from "./pages/VisaTracker"
 import Profile from "./components/Profile"
 import ProfileSettings from "./components/ProfileSettings"
 import Settings from "./components/Settings"
+import Documents from "./components/Documents"
+
 
 
 
@@ -54,6 +56,8 @@ function App() {
     <Route path="/profile" element={<Profile />} />
 <Route path="/manage-account" element={<ProfileSettings />} />
 <Route path="/settings" element={<Settings />} />
+<Route path="/documents" element={<Documents />} />
+
 
     <Route
       path="/admin"
@@ -66,6 +70,8 @@ function App() {
       <Route path="jobs" element={<AdminJobs />} />
       <Route path="applications" element={<AdminApplications />} />
       <Route path="support" element={<AdminSupport />} />
+      
+     
     </Route>
   </Routes>
 </div>

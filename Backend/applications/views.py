@@ -49,23 +49,28 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         application = serializer.save(
             applicant=self.request.user
         )
-        
+        already_paid = Payment.objects.filter(
+        user=self.request.user,
+        service_type="application_fee",
+        status="verified"
+        ).exists()
 
-        send_mail(
-        subject="Application Received - Payment Required",
-        message=(
-            f"Dear {self.request.user.full_name},\n\n"
-            f"We have received your documents for {application.job.title}.\n\n"
-            "To proceed to the next stage, please pay 350 CAD.\n\n"
-            "Once your payment is verified, you will be notified.\n\n"
-            "Warm regards,\n"
-            "The Simizi Team\n"
-            "🌐 https://simizi.net\n"
-        ),
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[self.request.user.email],
-        fail_silently=False,
-    )
+        if not already_paid:
+            send_mail(
+                    subject="Application Received - Payment Required",
+                    message=(
+                    f"Dear {self.request.user.full_name},\n\n"
+                    f"We have received your documents for {application.job.title}.\n\n"
+                    "To proceed to the next stage, please pay 350 CAD.\n\n"
+                    "Once your payment is verified, you will be notified.\n\n"
+                    "Warm regards,\n"
+                    "The Simizi Team\n"
+                    "🌐 https://simizi.net\n"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[self.request.user.email],
+                fail_silently=False,
+            )
 
     # =============================
     # UPDATE STATUS (ADMIN ONLY)
@@ -146,7 +151,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
                             name=label,
                             order=index
                         )
-            message = f"""
+                message = f"""
 Dear {application.applicant.full_name},
 
 We are pleased to inform you that your application has been successfully processed, and the hiring company has issued your Job Offer Letter.
@@ -171,7 +176,7 @@ Simizi Support Team
 https://www.simizi.net
 """
                     
-            send_mail(
+                send_mail(
                 subject="Job Offer Letter Issued – Action Required",
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,

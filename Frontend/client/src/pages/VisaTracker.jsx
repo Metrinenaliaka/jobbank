@@ -183,16 +183,54 @@ const getCurrentStageStep = (stage) => {
         : { text: "⏳ Under review by immigration authorities", color: "#f39c12" }
 
     case "ielts":
-      if (!userUpload) return { text: "⏳ Awaiting IELTS results upload", color: "#999" }
-      if (userUpload && !adminUpload) return { text: "⏳ Results under review", color: "#f39c12" }
-      if (adminUpload) return { text: "✔ IELTS certificate ready", color: "#2ecc71" }
+  if (stage.ielts_status === "rejected") {
+    return {
+      text: "❌ IELTS results rejected – please upload again",
+      color: "#e74c3c"
+    }
+  }
+
+  if (!userUpload) return { text: "⏳ Awaiting IELTS results upload", color: "#999" }
+  if (userUpload && stage.ielts_status === "approved" && !adminUpload)
+    return { text: "⏳ Preparing certificate", color: "#f39c12" }
+  if (adminUpload)
+    return { text: "✔ IELTS certificate ready", color: "#2ecc71" }
       break
 
     case "medical":
-      if (isCompleted) return { text: "✔ Medical approved", color: "#2ecc71" }
-      if (userUpload) return { text: "⏳ Medical report under review", color: "#f39c12" }
-      if (stage.medical_booking_date) return { text: "⏳ Appointment requested", color: "#f39c12" }
-      return { text: "⏳ Awaiting medical submission or booking", color: "#999" }
+  if (stage.medical_status === "rejected") {
+    return {
+      text: "❌ Medical rejected – please upload again",
+      color: "#e74c3c"
+    }
+  }
+
+  if (stage.status === "completed") {
+    return {
+      text: "✔ Medical approved",
+      color: "#2ecc71"
+    }
+  }
+
+  if (userUpload) {
+    return {
+      text: "⏳ Medical report under review",
+      color: "#f39c12"
+    }
+  }
+
+  if (stage.medical_booking_date) {
+    return {
+      text: `📅 Scheduled for ${stage.medical_booking_date}`,
+      color: "#3498db"
+    }
+  }
+
+  return {
+    text: "⏳ Awaiting medical submission or booking",
+    color: "#999"
+  }
+  break
 
     case "biometrics":
   if (stage.status === "completed") {
@@ -377,7 +415,7 @@ margin: isMobile ? "10px" : "40px auto",
   `,
 
   boxShadow: "0 20px 60px rgba(0,0,0,0.1)",
-  zIndex: 9999,
+  zIndex: "auto",
 },
 backgroundShimmer: isMobile ? {} : {
   position: "absolute",
@@ -1971,6 +2009,20 @@ transform: "none"
           </>
         )
       }
+      if (activeStageData?.medical_status === "rejected") {
+  return (
+    <>
+      <p style={{ color: "#e74c3c", fontWeight: "600" }}>
+        ❌ Medical rejected – upload new report
+      </p>
+
+      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+      <button onClick={() => handleUpload(activeStageData?.id)}>
+        Upload New Report
+      </button>
+    </>
+  )
+}
 
       // ✅ CASE 3: BOOKED DATE
       if (hasBooking) {

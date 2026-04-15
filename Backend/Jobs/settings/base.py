@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'applications',
     'payments',
     'visa',
+    'documents',
 ]
 
 MIDDLEWARE = [

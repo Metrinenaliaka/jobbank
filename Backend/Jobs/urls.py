@@ -28,5 +28,6 @@ urlpatterns = [
     path('api/', include('support.urls')),
     path("api/payments/", include("payments.urls")),
     path("api/", include("visa.urls")),
+    path("api/", include("documents.urls")),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -6,6 +6,7 @@ import ReactQuill from "react-quill-new"
 import "react-quill-new/dist/quill.snow.css"
 import AdminUsers from "./AdminUsers"
 import AdminVisa from "./AdminVisa"
+import AdminDocuments from "./AdminDocuments"
 
 import CreatableSelect from "react-select/creatable"
 
@@ -306,6 +307,12 @@ const filteredPayments = payments.filter(p =>
 >
   Users
 </button>
+        <button
+  style={activeTab === "documents" ? activeAdminTab : adminTab}
+  onClick={() => setActiveTab("documents")}
+>
+  Documents
+</button>
       </div>
 
       {/* CREATE / EDIT JOB */}
@@ -585,6 +592,7 @@ const filteredPayments = payments.filter(p =>
      
 {activeTab === "visa" && <AdminVisa />}
       {activeTab === "users" && <AdminUsers />}
+      {activeTab === "documents" && <AdminDocuments />}
 
     </div>
   )

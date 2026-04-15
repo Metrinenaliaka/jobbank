@@ -39,7 +39,7 @@ class JobListingViewSet(viewsets.ModelViewSet):
     ordering_fields = [
         'created_at',
         'salary',
-        'expires_at',
+        
     ]
 
     ordering = ['-created_at']
@@ -57,11 +57,8 @@ class JobListingViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated and self.request.user.is_staff:
             return JobListing.objects.all()
 
-        # ⭐ Public users see only active jobs
-        return JobListing.objects.filter(
-            is_active=True,
-            expires_at__gt=timezone.now()
-        )
+       
+        return JobListing.objects.all()
     def get_serializer_class(self):
         """
         Use small serializer for list

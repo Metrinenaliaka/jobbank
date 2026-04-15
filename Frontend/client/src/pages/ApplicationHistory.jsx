@@ -132,9 +132,14 @@ const counts = getCounts()
         const paymentStatus = app.latest_payment_status || "not_paid"
 
         const canMakePayment =
-          paymentStatus === "not_paid" ||
-          paymentStatus === "rejected"
+  paymentStatus === "not_paid" || paymentStatus === "rejected"
 
+// BUT ALSO ensure only first application shows it
+const firstAppId = Math.min(...applications.map(a => a.id))
+const isFirstApplication = app.id === firstAppId
+
+const shouldShowPayment =
+  canMakePayment && isFirstApplication
         const isPending = paymentStatus === "pending"
         const isVerified = paymentStatus === "verified"
         const isRejected = paymentStatus === "rejected"
@@ -291,7 +296,7 @@ onMouseUp={e => {
 )}
 
             {/* PAYMENT SECTION */}
-            {canMakePayment && (
+            {shouldShowPayment && (
               <div style={paymentBox}>
                 <p style={{ fontWeight: "600", marginBottom: "10px" }}>
                   350 CAD Application Processing Fee Required
@@ -350,45 +355,13 @@ onMouseUp={e => {
         <PaymentModal
           applicationId={selectedApp.id}
           jobId={selectedApp.job}
+          serviceType="application_fee" 
           onSuccess={handlePaymentSuccess}
           onClose={() => setSelectedApp(null)}
         />
       )}
        {/* ================= PAYMENT METHODS ================= */}
-      <div style={methodsWrapper}>
-        <h3 style={{ marginBottom: "15px" }}>Accepted Payment Methods</h3>
-
-        <div style={methodsGrid}>
-
-          {/* M-PESA (RECOMMENDED) */}
-          <div style={{ ...methodCard, ...recommendedCard }}>
-            <div style={badge}>RECOMMENDED</div>
-            <FaMobileAlt size={40} color="#2ecc71" />
-            <span>M-Pesa Global</span>
-          </div>
-
-          <div style={methodCard}>
-            <FaPaypal size={40} color="#0070ba" />
-            <span>PayPal</span>
-          </div>
-
-          <div style={methodCard}>
-            <FaUniversity size={40} />
-            <span>Bank / Wire</span>
-          </div>
-
-          <div style={methodCard}>
-            <FaCcVisa size={40} />
-            <span>Visa</span>
-          </div>
-
-          <div style={methodCard}>
-            <FaCcMastercard size={40} />
-            <span>Mastercard</span>
-          </div>
-
-        </div>
-      </div>
+      
 
     </div>
   )

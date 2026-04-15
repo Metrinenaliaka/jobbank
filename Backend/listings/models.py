@@ -20,7 +20,7 @@ class JobListing(models.Model):
         models.Index(fields=['location_city']),
         models.Index(fields=['location_province']),
         models.Index(fields=['created_at']),
-        models.Index(fields=['expires_at']),
+       
         ]
 
 
@@ -80,16 +80,12 @@ class JobListing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    expires_at = models.DateTimeField()
+    # expires_at = models.DateTimeField()
 
     def save(self, *args, **kwargs):
-        if not self.expires_at:
-            self.expires_at = timezone.now() + timedelta(days=30)
         super().save(*args, **kwargs)
 
-    @property
-    def is_expired(self):
-        return timezone.now() > self.expires_at
+   
 
     def __str__(self):
         return self.title

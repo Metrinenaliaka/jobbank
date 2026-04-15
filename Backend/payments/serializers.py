@@ -48,16 +48,51 @@ class PaymentSerializer(serializers.ModelSerializer):
         service_type = attrs.get("service_type")
         application = attrs.get("application")
 
+        # ===============================
+        # 🔥 APPLICATION FEE (NEW LOGIC)
+        # ===============================
+        if service_type == "application_fee":
+
+            # ✅ Block ONLY if there's a pending payment
+            pending_payment = Payment.objects.filter(
+                user=user,
+                service_type="application_fee",
+                status="pending"
+            ).exists()
+
+            if pending_payment:
+                raise serializers.ValidationError(
+                    "Your previous payment is still being verified."
+                )
+
+            # ✅ Block if already verified (user has paid once)
+            already_verified = Payment.objects.filter(
+                user=user,
+                service_type="application_fee",
+                status="verified"
+            ).exists()
+
+            if already_verified:
+                raise serializers.ValidationError(
+                    "Application fee already paid."
+                )
+
+            return attrs  # 🚨 EXIT EARLY (important)
+
+        # ===============================
+        # 🔥 OTHER PAYMENTS (UNCHANGED)
+        # ===============================
         if application:
-            existing_payment = Payment.objects.filter(
+            pending_payment = Payment.objects.filter(
                 user=user,
                 application=application,
-                service_type=service_type
-            ).exclude(status="rejected").first()
+                service_type=service_type,
+                status="pending"
+            ).exists()
 
-            if existing_payment:
+            if pending_payment:
                 raise serializers.ValidationError(
-                    f"A {service_type.replace('_', ' ')} payment already exists."
+                    "A payment for this application is still being processed."
                 )
 
         return attrs

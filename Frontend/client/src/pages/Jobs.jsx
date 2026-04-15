@@ -292,6 +292,7 @@ const searchInput = {
   border: "none",
   outline: "none",
   background: "transparent",
+  color: "#111",
   flex: 1
 }
 const cardHeader = {
@@ -304,7 +305,7 @@ const locationRow = {
   alignItems: "center",
   gap: "6px",
   marginTop: "6px",
-  color: "#374151",
+  color: "#070707",
   fontSize: "14px"
 }
 

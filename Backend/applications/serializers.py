@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.utils import timezone
 from .models import Application
+from payments.models import Payment, PaymentMethod
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -33,14 +34,39 @@ class ApplicationSerializer(serializers.ModelSerializer):
         read_only_fields = ["applied_at"]
 
     def get_latest_payment_status(self, obj):
-        payment = obj.payments.filter(
-            service_type="application_fee"
-        ).order_by("-created_at").first()
+        user = obj.applicant
 
-        if not payment:
-            return "not_paid"
+        # ✅ FIRST: check if ANY verified payment exists
+        has_verified = Payment.objects.filter(
+            user=user,
+            service_type="application_fee",
+            status="verified"
+        ).exists()
 
-        return payment.status
+        if has_verified:
+            return "verified"
+
+        # ✅ THEN check pending
+        has_pending = Payment.objects.filter(
+            user=user,
+            service_type="application_fee",
+            status="pending"
+        ).exists()
+
+        if has_pending:
+            return "pending"
+
+        # ✅ THEN check rejected
+        has_rejected = Payment.objects.filter(
+            user=user,
+            service_type="application_fee",
+            status="rejected"
+        ).exists()
+
+        if has_rejected:
+            return "rejected"
+
+        return "not_paid"
 
     # -----------------------------
     # VALIDATION
@@ -54,10 +80,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = request.user
 
-        if job.expires_at <= timezone.now():
-            raise serializers.ValidationError(
-                {"detail": "This job has expired."}
-            )
+        
 
         if not job.is_active:
             raise serializers.ValidationError(

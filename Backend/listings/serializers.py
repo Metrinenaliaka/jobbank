@@ -39,7 +39,7 @@ class JobDetailSerializer(serializers.ModelSerializer):
     )
 
     tags = TagSerializer(many=True, read_only=True)
-    expires_at = serializers.DateTimeField(required=False)
+    
 
     class Meta:
         model = JobListing

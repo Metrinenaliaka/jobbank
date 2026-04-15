@@ -2,6 +2,10 @@ import { useState, useContext, useEffect } from "react"
 import PhoneInput from "react-phone-input-2"
 import "react-phone-input-2/lib/style.css"
 import { AuthContext } from "../context/AuthContext"
+import countries from "i18n-iso-countries"
+import en from "i18n-iso-countries/langs/en.json"
+
+countries.registerLocale(en)
 
 function RegisterModal({ onClose, onSwitchToLogin }) {
 
@@ -19,12 +23,9 @@ useEffect(() => {
     "Mandarin","Portuguese","Hindi","Swahili","Italian"
   ]
 
-  const countries = [
-    "Canada","United States","United Kingdom","France","Germany",
-    "Kenya","Nigeria","India","Australia","South Africa",
-    "China","Brazil","Italy","Spain","Mexico",
-    "Japan","Netherlands","Sweden","Norway","Denmark"
-  ]
+  const countryList = Object.values(
+  countries.getNames("en", { select: "official" })
+)
   const fieldLabels = {
   email: "Email",
   phone_number: "Phone number",
@@ -256,7 +257,8 @@ onBlur={(e) => {
   border: "1px solid rgba(0,0,0,0.15)",
   height: "44px",
   background: "#ffffff",
-  fontSize: "16px"
+  fontSize: "16px",
+  color: "#000000",
 }}
               />
 
@@ -267,9 +269,11 @@ onBlur={(e) => {
                 required
               >
                 <option value="">Select Nationality</option>
-                {countries.map((country) => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
+               {countryList.map((country) => (
+  <option key={country} value={country}>
+    {country}
+  </option>
+))}
               </select>
 
               <select
